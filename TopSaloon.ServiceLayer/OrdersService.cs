@@ -210,7 +210,7 @@ namespace TopSaloon.ServiceLayer
                 {
                     var orderToFetch = await unitOfWork.OrdersManager.GetAsync(b => b.Id == orderServices[0].OrderId);
                     var order = orderToFetch.FirstOrDefault();
-                    var completionRes = await FinalizeOrder(order.Id, order.CustomerId);
+                    var completionRes = await FinalizeOrder(order.Id);
                     if (completionRes.Succeeded)
                     {
 
@@ -280,7 +280,7 @@ namespace TopSaloon.ServiceLayer
         }
             //--------------------------------- Finalize Order ------------------------------------------------//
 
-        public async Task<ApiResponse<string>> FinalizeOrder(int orderId, int customerId)
+        public async Task<ApiResponse<string>> FinalizeOrder(int orderId)
             {
                 ApiResponse<string> result = new ApiResponse<string>();
 
@@ -296,7 +296,7 @@ namespace TopSaloon.ServiceLayer
 
                 if (OrderToUpdate != null)
                 {
-                    var customer = await unitOfWork.CustomersManager.GetByIdAsync(customerId);
+                    var customer = await unitOfWork.CustomersManager.GetByIdAsync(OrderToUpdate.CustomerId);
 
                     if (customer != null)
                     {
@@ -343,22 +343,6 @@ namespace TopSaloon.ServiceLayer
                                 {
 
                                     await SetQueueWaitingTimes();
-
-                                    //for (int i = 0; i < QueueToUpdate.Orders.Count; i++)
-                                    //{
-                                    //    if (i == 0)
-                                    //    {
-                                    //        QueueToUpdate.Orders[i].FinishTime =
-                                    //            QueueToUpdate.Orders[i].OrderDate.Value.AddMinutes
-                                    //            (Convert.ToDouble(QueueToUpdate.Orders[i].TotalServicesWaitingTime));
-                                    //    }
-                                    //    else
-                                    //    {
-                                    //        QueueToUpdate.Orders[i].FinishTime =
-                                    //            QueueToUpdate.Orders[i - 1].FinishTime.Value.AddMinutes
-                                    //            (Convert.ToDouble(QueueToUpdate.Orders[i].TotalServicesWaitingTime));
-                                    //    }
-                                    //}
                                 }
 
                                 OrderHistory.BarberId = QueueToUpdate.BarberId;
@@ -394,11 +378,10 @@ namespace TopSaloon.ServiceLayer
 
                                     var barberUpdateResult = await unitOfWork.BarbersManager.UpdateAsync(barberToUpdate);
 
-
-
-
                                     if(barberUpdateResult == true)
                                     {
+                                        customer.TotalNumberOfVisits++;
+
                                         await unitOfWork.SaveChangesAsync();
 
                                         result.Data = "Order finalized successfully.";

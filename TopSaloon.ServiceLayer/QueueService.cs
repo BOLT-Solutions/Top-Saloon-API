@@ -217,6 +217,11 @@ namespace TopSaloon.ServiceLayer
                                 barberQueue[i].QueueWaitingTime = Convert.ToInt32(waitingTime.Value.TotalMinutes); // set waiting time in minutes.
                             }
                         }
+                        else
+                        {
+                            barberQueue[i].QueueWaitingTime = 0;
+                            barberQueue[i].QueueStatus = "idle";
+                        }
                     }
                     if (countErrors > 0)
                     {
