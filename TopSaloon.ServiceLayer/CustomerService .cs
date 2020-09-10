@@ -453,6 +453,7 @@ namespace TopSaloon.ServiceLayer
 
                     customer.Name = model.Name;
                     customer.PhoneNumber = model.PhoneNumber;
+                    customer.Email = model.Email;
                   
                     await unitOfWork.CustomersManager.UpdateAsync(customer);
 
