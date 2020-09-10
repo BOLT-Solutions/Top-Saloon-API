@@ -130,117 +130,37 @@ namespace TopSaloon.ServiceLayer
         }
 
         //----------------------------- Cancel Order ----------------------------------------------//
-        public async Task<ApiResponse<string>> CancelOrder(string orderId, string customerId)
+        public async Task<ApiResponse<string>> CancelOrder(string orderId)
         {
-            //Cancel Order: set order status to cancelled, pop order from corresponding queue. 
+            //Cancel Order: remove order from queue, set next order (if found) time to current time and adjust queue.
             ApiResponse<string> result = new ApiResponse<string>();
 
             try
             {
                 var order = await unitOfWork.OrdersManager.GetAsync(b => b.Id == Int32.Parse(orderId), 0, 0, null, includeProperties: "OrderServices");
-                Order OrderToUpdate = order.FirstOrDefault();
-                CompleteOrder OrderHistory = new CompleteOrder();
-                OrderHistory.OrderServicesList = "";
+                Order OrderToUpdate = order.FirstOrDefault(); 
                 if (OrderToUpdate != null)
                 {
-                    var customer = await unitOfWork.CustomersManager.GetByIdAsync(Int32.Parse(customerId));
-                    if(customer != null)
-                    {
-                        OrderToUpdate.Status = "Cancelled";
-                        var isUpdated_OrderService = false;
-                        OrderHistory.OrderDateTime = OrderToUpdate.OrderDate;
-                        OrderHistory.OrderFinishTime = OrderToUpdate.FinishTime;
-                        OrderHistory.OrderTotalAmount = OrderToUpdate.OrderTotal;
-                        OrderHistory.CustomerWaitingTimeInMinutes = OrderToUpdate.WaitingTimeInMinutes;
-                        OrderHistory.Status = OrderToUpdate.Status;
-                        OrderHistory.CustomerId = customer.Id;
-                        for (int i = 0; i < OrderToUpdate.OrderServices.Count; i++)
-                        {
-                            OrderToUpdate.OrderServices[i].IsConfirmed = false;
-                            OrderHistory.OrderServicesList = OrderHistory.OrderServicesList + OrderToUpdate.OrderServices[i].ServiceId + ","; // orderservices[i].ServiceId
-                            isUpdated_OrderService = true;
-                        }
-                        var OrderUpdateResult = false;
-                        if (isUpdated_OrderService)
-                        {
-                            OrderUpdateResult = await unitOfWork.OrdersManager.UpdateAsync(OrderToUpdate);
-                        }
-                        //= await unitOfWork.SaveChangesAsync();
-                        if (OrderUpdateResult)
-                        {
-                            var barberQueue = await unitOfWork.BarbersQueuesManager.GetAsync(b => b.Id == OrderToUpdate.BarberQueueId, 0, 0, null, includeProperties: "Orders");
-                            if (barberQueue != null)
-                            {
-                                BarberQueue QueueToUpdate = barberQueue.FirstOrDefault();
-                                for (int i = 0; i < QueueToUpdate.Orders.Count; i++)
-                                {
-                                    if (QueueToUpdate.Orders[i].Id == Int32.Parse(orderId))
-                                    {
-                                        QueueToUpdate.Orders.Remove(QueueToUpdate.Orders[i]);
-                                    }
-                                }
-                                if (QueueToUpdate.Orders.Count == 0)
-                                {
-                                    QueueToUpdate.QueueStatus = "idle";
-                                }
-                                else //Re-Adjust Queue Finish Time For Remaining Orders
-                                {
-                                    for(int i=0; i<QueueToUpdate.Orders.Count; i++)
-                                    {
-                                        if (i == 0)
-                                        {
-                                            QueueToUpdate.Orders[i].FinishTime =
-                                                QueueToUpdate.Orders[i].OrderDate.Value.AddMinutes
-                                                (Convert.ToDouble(QueueToUpdate.Orders[i].TotalServicesWaitingTime));
-                                        }
-                                        else
-                                        {
-                                            QueueToUpdate.Orders[i].FinishTime =
-                                                QueueToUpdate.Orders[i - 1].FinishTime.Value.AddMinutes
-                                                (Convert.ToDouble(QueueToUpdate.Orders[i].TotalServicesWaitingTime));
-                                        }
-                                    }
-                                }
-                                OrderHistory.BarberId = QueueToUpdate.BarberId;
-                                await unitOfWork.BarbersQueuesManager.UpdateAsync(QueueToUpdate);
-                                await unitOfWork.CompleteOrdersManager.CreateAsync(OrderHistory);
-                                var finalres = await unitOfWork.SaveChangesAsync();
-                                if (finalres)
-                                {
-                                    await SetQueueWaitingTimes();
-                                    result.Data = "Order cancelled successfully.";
-                                    result.Succeeded = true;
-                                    return result;
-                                }
-                                else
-                                {
-                                    result.Data = "Cancellation error.";
-                                    result.Succeeded = false;
-                                    return result;
-                                }
-                            }
-                            else
-                            {
-                                result.Data = "Error";
-                                result.Errors.Add("Failed to fetch barber Queue !");
-                                return result;
-                            }
-                        }
-                        else
-                        {
-                            result.Data = "Error.";
-                            result.Errors.Add("Error cancelling order !");
-                            result.Succeeded = false;
-                            return result;
-                        }
+                    //Fetch barber queue from order.
+                   var barberQueueToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == OrderToUpdate.BarberQueueId, includeProperties: "Orders");
+                    var barberQueue = barberQueueToFetch.FirstOrDefault();
+
+                    if(barberQueue != null) { 
+                    //Fetch and remove order to remove from Queue order list
+                        var orderToRemove = barberQueue.Orders.Find(o => o.Id == Int32.Parse(orderId));
+                        barberQueue.Orders.Remove(orderToRemove);
+
+                        await unitOfWork.SaveChangesAsync();
+                        await SetQueueWaitingTimes();
+                        result.Data = "Order cancelled successfully.";
+                        result.Succeeded = true;
+                        return result;
                     }
                     else
                     {
-                        result.Data = "Error.";
-                        result.Errors.Add("Error fetching customer details !");
                         result.Succeeded = false;
+                        result.Errors.Add("Could not fetch barber queue");
                         return result;
-
                     }
                 }
                 else
@@ -318,6 +238,40 @@ namespace TopSaloon.ServiceLayer
                 }
             }
             catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+        }
+
+        public async Task<ApiResponse<bool>> StartOrder(int orderId)
+        {
+            ApiResponse<bool> result = new ApiResponse<bool>();
+            try
+            {
+                var orderToFetch = await unitOfWork.OrdersManager.GetByIdAsync(orderId);
+
+
+                if (orderToFetch != null) { 
+                    orderToFetch.OrderDate = DateTime.Now;
+
+                    await unitOfWork.SaveChangesAsync();
+                    await SetQueueWaitingTimes();
+
+                    result.Data = true;
+                    result.Succeeded = true;
+                    return result;
+                }
+                else
+                {
+                    result.Errors.Add("Unable to fetch order");
+                    result.Data = false;
+                    result.Succeeded = false;
+                    return result;
+                }
+            }
+            catch(Exception ex)
             {
                 result.Succeeded = false;
                 result.Errors.Add(ex.Message);
@@ -511,71 +465,41 @@ namespace TopSaloon.ServiceLayer
             var result = new ApiResponse<bool>();
             try
             {
-                var barberQueues = await unitOfWork.BarbersQueuesManager.GetAsync();
-                List<BarberQueue> barberQueuesList = barberQueues.ToList();
-                if (barberQueuesList != null)
+                var barberQueuesToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(includeProperties: "Orders");
+                List<BarberQueue> barberQueue = barberQueuesToFetch.ToList();
+                TimeSpan? waitingTime;
+                if (barberQueue != null)
                 {
                     int countErrors = 0;
-
-                    for (int i = 0; i < barberQueuesList.Count; i++)
+                    //Iterate and set time per queue
+                    for (int i = 0; i < barberQueue.Count; i++)
                     {
-                        // Calculating waiting queue waiting time . 
-                        QueueTimeHandlerModel handler = new QueueTimeHandlerModel();
-                        handler.QueueId = barberQueuesList[i].Id;
-                        var queueOrders = await unitOfWork.OrdersManager.GetAsync(b => b.BarberQueueId == handler.QueueId, 0, 0, null, includeProperties: "OrderServices");
-                        BarberQueue barberQueueToUpdate = await unitOfWork.BarbersQueuesManager.GetByIdAsync(barberQueuesList[i].Id);
-
-                        if (queueOrders != null)
-                        {
-
-                            TimeSpan? CalculatedDateTime;
-                            handler.Orders = mapper.Map<List<OrderDTO>>(queueOrders.ToList());
-
-                            if (handler.Orders.Count == 0)
+                        if (barberQueue[i].Orders.Count > 0)
+                        { // validate orders count in queue
+                            if (DateTime.Now > barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime) // Last order finish time in queue is passed.
                             {
-                                handler.QueueEstimatedFinishTime = null;
-                                handler.QueueEstimatedWaitingTime = 0;
-                                barberQueueToUpdate.QueueWaitingTime = 0;
+                                barberQueue[i].QueueWaitingTime = 0;
+                                barberQueue[i].QueueStatus = "idle";
+                                barberQueue[i].Orders.Clear();
                             }
                             else
                             {
-                                for (int y = 0; y < handler.Orders.Count; y++)
+                                for(int k=0; k< barberQueue[i].Orders.Count; k++)
                                 {
-                                    if (y == 0)
+                                    if (k == 0)
                                     {
-                                        handler.QueueEstimatedFinishTime = handler.Orders[y].FinishTime;
-                                        handler.QueueEstimatedWaitingTime = 0;
-                                        barberQueueToUpdate.QueueWaitingTime = 0;
+                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k].OrderDate.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
                                     }
                                     else
                                     {
-                                        handler.QueueEstimatedFinishTime = handler.QueueEstimatedFinishTime.Value.AddMinutes(Convert.ToDouble(handler.Orders[y].WaitingTimeInMinutes.Value));
-                                        CalculatedDateTime = (handler.QueueEstimatedFinishTime - handler.Orders[y].OrderDate);
-                                        handler.QueueEstimatedWaitingTime = CalculatedDateTime.Value.TotalMinutes;
-                                        barberQueueToUpdate.QueueWaitingTime = Convert.ToInt32(CalculatedDateTime.Value.TotalMinutes);
-                                        //Calculated DateTime: time difference between General estimate finish time and current order creation date.
+                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k - 1].FinishTime.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
                                     }
                                 }
-                                CalculatedDateTime = (handler.QueueEstimatedFinishTime - DateTime.Now);
-                                handler.QueueEstimatedWaitingTime = CalculatedDateTime.Value.TotalMinutes;
-                                barberQueueToUpdate.QueueWaitingTime = Convert.ToInt32(CalculatedDateTime.Value.TotalMinutes);
-                                if (barberQueueToUpdate.QueueWaitingTime < 0)
-                                {
-                                    barberQueueToUpdate.QueueWaitingTime = 0;
-                                }
+                                waitingTime = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now; // calculate waiting from last order finish time in queue
+                                barberQueue[i].QueueWaitingTime = Convert.ToInt32(waitingTime.Value.TotalMinutes); // set waiting time in minutes.
                             }
-
-                            var res = await unitOfWork.SaveChangesAsync();
                         }
-                        else
-                        {
-                            barberQueueToUpdate.QueueWaitingTime = 0;
-
-                            await unitOfWork.SaveChangesAsync();
-                        }
-                        //End of calculating queue waiting time .
                     }
-
                     if (countErrors > 0)
                     {
                         result.Succeeded = false;
@@ -584,12 +508,11 @@ namespace TopSaloon.ServiceLayer
                     }
                     else
                     {
+                        await unitOfWork.SaveChangesAsync();
                         result.Data = true;
                         result.Succeeded = true;
                         return result;
                     }
-
-
                 }//End OF MAIN IF  . 
                 else
                 {

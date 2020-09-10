@@ -202,6 +202,17 @@ namespace TopSaloon.ServiceLayer
                             }
                             else
                             {
+                                for (int k = 0; k < barberQueue[i].Orders.Count; k++)
+                                {
+                                    if (k == 0)
+                                    {
+                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k].OrderDate.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
+                                    }
+                                    else
+                                    {
+                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k - 1].FinishTime.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
+                                    }
+                                }
                                 waitingTime = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now; // calculate waiting from last order finish time in queue
                                 barberQueue[i].QueueWaitingTime = Convert.ToInt32(waitingTime.Value.TotalMinutes); // set waiting time in minutes.
                             }

@@ -38,9 +38,9 @@ namespace TopSaloon.API.Controllers
         }
 
         [HttpPut("CancelOrder")]
-        public async Task<IActionResult> CancelOrder(string orderId, string customerId)
+        public async Task<IActionResult> CancelOrder(string orderId)
         {
-            return await EditItemResponseHandler(async () => await service.CancelOrder(orderId, customerId));
+            return await EditItemResponseHandler(async () => await service.CancelOrder(orderId));
         }
         [HttpPut("FinalizeOrder")]
         public async Task <IActionResult> FinalizeOrder(int orderId, int customerId)
@@ -57,6 +57,11 @@ namespace TopSaloon.API.Controllers
         public async Task<IActionResult> getAllCompleteOrderByDate(DateTime date)
         {
             return await GetResponseHandler(async () => await service.getAllCompleteOrderByDate(date));
+        }
+        [HttpGet("StartOrder/{id}")]
+        public async Task<IActionResult> StartOrder(int id)
+        {
+            return await GetResponseHandler(async () => await service.StartOrder(id));
         }
 
     }

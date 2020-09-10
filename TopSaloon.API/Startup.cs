@@ -35,7 +35,7 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         { 
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC15\\SQLEXPRESS;Initial Catalog=TOPSALOON;Persist Security Info=False;User ID=sa;Password=P@ssword;"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC12\\SQLEXPRESS;Initial Catalog=TOPSALOON;Persist Security Info=False;User ID=sa;Password=P@ssw0rd;"));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
