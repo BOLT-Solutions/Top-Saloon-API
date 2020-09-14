@@ -14,46 +14,43 @@ namespace TopSaloon.API
     {
         public static void Main(string[] args)
         {
-              CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
+
+            //var configuration = new ConfigurationBuilder()
+            //.AddCommandLine(args)
+            //.Build();
+            //var hostUrl = configuration["hosturl"];
+            //if (string.IsNullOrEmpty(hostUrl))
+            //    hostUrl = "http://0.0.0.0:8007";
+            //var host = new WebHostBuilder()
+            //    .UseKestrel()
+            //    .UseUrls(hostUrl)   // <!-- this 
+            //    .UseContentRoot(Directory.GetCurrentDirectory())
+            //    .UseIISIntegration()
+            //    .UseStartup<Startup>()
+            //    .UseConfiguration(configuration)
+            //    .Build();
+            //host.Run();
         }
+
+
+        //public static IHostBuilder CreateHostBuilder(string[] args) =>
+        //    Host.CreateDefaultBuilder(args)
+        //        .ConfigureWebHostDefaults(webBuilder =>
+        //        {
+        //            webBuilder.UseStartup<Startup>();
+        //            webBuilder.UseUrls("http://192.168.5.201:8007");
+        //        });
+
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
-            webBuilder.UseStartup<Startup>();
+                webBuilder.UseStartup<Startup>();
             });
+
     }
-
-
-
-    // For publishing .
-
-    //  var configuration = new ConfigurationBuilder()
-    //.AddCommandLine(args)
-    //.Build();
-    //  var hostUrl = configuration["hosturl"];
-    //  if (string.IsNullOrEmpty(hostUrl))
-    //      hostUrl = "http://0.0.0.0:8007";
-    //  var host = new WebHostBuilder()
-    //      .UseKestrel()
-    //      .UseUrls(hostUrl)   // <!-- this 
-    //      .UseContentRoot(Directory.GetCurrentDirectory())
-    //      .UseIISIntegration()
-    //      .UseStartup<Startup>()
-    //      .UseConfiguration(configuration)
-    //      .Build();
-    //  host.Run();
-
-
-
-    //public static IHostBuilder CreateHostBuilder(string[] args) =>
-    //    Host.CreateDefaultBuilder(args)
-    //        .ConfigureWebHostDefaults(webBuilder =>
-    //        {
-    //            webBuilder.UseStartup<Startup>();
-    //            webBuilder.UseUrls("http://192.168.5.201:8007");        
-    //        });
 
 }
 

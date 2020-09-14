@@ -33,9 +33,12 @@ namespace TopSaloon.API
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
-        { 
+        {
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC12\\SQLEXPRESS;Initial Catalog=TOPSALOON;Persist Security Info=False;User ID=sa;Password=P@ssw0rd;"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC15\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssword;"));
+
+            // services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=192.168.5.202; Database=TOPSALOON; User ID=sa; password=S3cur!ty;"));
+
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -43,7 +46,7 @@ namespace TopSaloon.API
 
             services.AddCors(options =>
                 options.AddDefaultPolicy(builder =>
-                    builder.WithOrigins("http://localhost:4200")
+                    builder.WithOrigins("http://localhost:4200", "http://localhost:4471", "http://localhost:4472")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()));
@@ -99,13 +102,10 @@ namespace TopSaloon.API
             app.UseCors(policy => policy
            .AllowAnyHeader()
            .AllowAnyMethod()
-           .WithOrigins("http://localhost:4200")
+           .WithOrigins("http://localhost:4200", "http://localhost:4471", "http://localhost:4472")
            .AllowCredentials());
 
-    
-
             app.UseRouting();
-
 
             //Remove when publishing .
             app.UseAuthorization();

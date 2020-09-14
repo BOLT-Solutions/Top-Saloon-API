@@ -186,7 +186,7 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<OrderFeedbackDTO> result = new ApiResponse<OrderFeedbackDTO>();
             try
             {
-                var orderFeedback = await unitOfWork.OrderFeedBacksManager.GetAsync(b => b.Id == Id, includeProperties: "OrderFeedbackQuestions");
+                var orderFeedback = await unitOfWork.OrderFeedBacksManager.GetAsync(b => b.CompleteOrderId == Id, includeProperties: "OrderFeedbackQuestions");
                 List<OrderFeedback> order= orderFeedback.ToList(); 
 
                 if (order != null)

@@ -208,9 +208,8 @@ namespace TopSaloon.ServiceLayer
                 }
                 else
                 {
-                    var orderToFetch = await unitOfWork.OrdersManager.GetAsync(b => b.Id == orderServices[0].OrderId);
-                    var order = orderToFetch.FirstOrDefault();
-                    var completionRes = await FinalizeOrder(order.Id);
+                    await unitOfWork.SaveChangesAsync();
+                    var completionRes = await FinalizeOrder(orderServices[0].OrderId);
                     if (completionRes.Succeeded)
                     {
 
@@ -281,157 +280,90 @@ namespace TopSaloon.ServiceLayer
             //--------------------------------- Finalize Order ------------------------------------------------//
 
         public async Task<ApiResponse<string>> FinalizeOrder(int orderId)
+        {
+            ApiResponse<string> result = new ApiResponse<string>();
+            try 
             {
-                ApiResponse<string> result = new ApiResponse<string>();
+                var orderToFetch = await unitOfWork.OrdersManager.GetAsync(o => o.Id == orderId, includeProperties: "OrderServices");
+                var order = orderToFetch.FirstOrDefault();
 
-            try
-            {
-                var order = await unitOfWork.OrdersManager.GetAsync(b => b.Id == orderId, 0, 0, null, includeProperties: "OrderServices");
-
-                Order OrderToUpdate = order.FirstOrDefault();
-
-                CompleteOrder OrderHistory = new CompleteOrder();
-
-                OrderHistory.OrderServicesList = "";
-
-                if (OrderToUpdate != null)
+                if (order != null)
                 {
-                    var customer = await unitOfWork.CustomersManager.GetByIdAsync(OrderToUpdate.CustomerId);
+                    CompleteOrder completeOrder = new CompleteOrder();
+                    completeOrder.OrderServicesList = "";
+                    order.OrderServices = order.OrderServices.Where(o => o.IsConfirmed == true).ToList(); // Filter confirmed services.
 
-                    if (customer != null)
+                    //Fetch customer and barber from order.
+                    var customer = await unitOfWork.CustomersManager.GetByIdAsync(order.CustomerId);
+                    var barberQueue = await unitOfWork.BarbersQueuesManager.GetByIdAsync(order.BarberQueueId);
+                    var barber = await unitOfWork.BarbersManager.GetByIdAsync(barberQueue.BarberId);
+
+                    //Create complete Order
+                    completeOrder.BarberId = barber.Id;
+                    completeOrder.OrderDateTime = order.OrderDate;
+                    completeOrder.OrderFinishTime = order.FinishTime;
+                    completeOrder.OrderTotalAmount = order.OrderTotal;
+                    completeOrder.CustomerId = customer.Id;
+                    completeOrder.CustomerNameEN = customer.Name;
+                    completeOrder.CustomerNameAR = customer.Name;
+                    completeOrder.BarberNameAR = barber.NameAR;
+                    completeOrder.BarberNameEN = barber.NameEN;
+                    completeOrder.CustomerWaitingTimeInMinutes = order.WaitingTimeInMinutes;
+                    completeOrder.Status = "Finalized";
+                    completeOrder.TotalTimeSpent = order.TotalServicesWaitingTime;
+
+                    //Fill complete order services list
+
+                    List<OrderService> orderServicesHistory = new List<OrderService>();
+                    orderServicesHistory = order.OrderServices;
+
+                    for(int i=0; i<order.OrderServices.Count; i++)
                     {
-                        OrderToUpdate.Status = "Done";
-                        OrderHistory.OrderDateTime = OrderToUpdate.OrderDate;
-                        OrderHistory.OrderFinishTime = OrderToUpdate.FinishTime;
-                        OrderHistory.OrderTotalAmount = OrderToUpdate.OrderTotal;
-                        OrderHistory.CustomerWaitingTimeInMinutes = OrderToUpdate.WaitingTimeInMinutes;
-                        OrderHistory.Status = OrderToUpdate.Status;
-                        OrderHistory.CustomerId = customer.Id;
-
-                        for (int i = 0; i < OrderToUpdate.OrderServices.Count; i++)
-                        {
-                            if (OrderToUpdate.OrderServices[i].IsConfirmed.HasValue)
-                            {
-                                OrderHistory.OrderServicesList = OrderHistory.OrderServicesList + OrderToUpdate.OrderServices[i].ServiceId + ","; 
-                            }
-                        }
-
-                        var OrderUpdateResult = await unitOfWork.OrdersManager.UpdateAsync(OrderToUpdate);
+                        completeOrder.OrderServicesList = completeOrder.OrderServicesList + order.OrderServices[i].ServiceId + ",";
                         
-
-                        if (OrderUpdateResult)
-                        {
-                            var barberQueue = await unitOfWork.BarbersQueuesManager.GetAsync(b => b.Id == OrderToUpdate.BarberQueueId, 0, 0, null, includeProperties: "Orders");
-
-                            if (barberQueue != null)
-                            {
-                                BarberQueue QueueToUpdate = barberQueue.FirstOrDefault();
-
-                                for (int i = 0; i < QueueToUpdate.Orders.Count; i++)
-                                {
-                                    if (QueueToUpdate.Orders[i].Id == orderId)
-                                    {
-                                        QueueToUpdate.Orders.Remove(QueueToUpdate.Orders[i]);
-                                    }
-                                }
-
-                                if (QueueToUpdate.Orders.Count == 0)
-                                {
-                                    QueueToUpdate.QueueStatus = "idle";
-                                }
-                                else //Re-Adjust Queue Finish Time For Remaining Orders
-                                {
-
-                                    await SetQueueWaitingTimes();
-                                }
-
-                                OrderHistory.BarberId = QueueToUpdate.BarberId;
-                                await unitOfWork.BarbersQueuesManager.UpdateAsync(QueueToUpdate);
-                                var completeOrder = await unitOfWork.CompleteOrdersManager.CreateAsync(OrderHistory);
-                                await unitOfWork.SaveChangesAsync();
-
-                                if (completeOrder != null)
-                                {
-
-                                    OrderFeedbackDTO orderFeedback = new OrderFeedbackDTO();
-                                    orderFeedback.CompleteOrderId = completeOrder.Id;
-                                    orderFeedback.IsSubmitted = false;
-                                    var createdOrderFeedback = await unitOfWork.OrderFeedBacksManager.CreateAsync(mapper.Map<OrderFeedback>(orderFeedback));
-                                    await unitOfWork.SaveChangesAsync();
-                                    for (int i = 0; i < OrderToUpdate.OrderServices.Count; i++)
-                                    {
-                                        var ServiceQuestionsToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.Id == OrderToUpdate.OrderServices[i].ServiceId);
-                                        var ServiceQuestions = ServiceQuestionsToFetch.FirstOrDefault();
-                                        OrderFeedbackQuestionDTO orderFeedbackQuestion = new OrderFeedbackQuestionDTO();
-                                        orderFeedbackQuestion.QuestionAR = ServiceQuestions.QuestionAR;
-                                        orderFeedbackQuestion.QuestionEN = ServiceQuestions.QuestionEN;
-                                        orderFeedbackQuestion.OrderFeedbackId = createdOrderFeedback.Id;
-                                        orderFeedbackQuestion.Rating = 0;
-
-                                        await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(mapper.Map<OrderFeedbackQuestion>(orderFeedbackQuestion));
-                                        await unitOfWork.SaveChangesAsync();
-                                    }
-
-                                    Barber barberToUpdate = await unitOfWork.BarbersManager.GetByIdAsync(completeOrder.BarberId);
-
-                                    barberToUpdate.NumberOfCustomersHandled++;
-
-                                    var barberUpdateResult = await unitOfWork.BarbersManager.UpdateAsync(barberToUpdate);
-
-                                    if(barberUpdateResult == true)
-                                    {
-                                        customer.TotalNumberOfVisits++;
-
-                                        await unitOfWork.SaveChangesAsync();
-
-                                        result.Data = "Order finalized successfully.";
-                                        result.Succeeded = true;
-                                        return result;
-                                    }
-                                    else
-                                    {
-                                        result.Data = "Error";
-                                        result.Errors.Add("Failed to update barber !");
-                                        return result;
-                                    }
-                                }
-                                else
-                                {
-                                    result.Data = "Error";
-                                    result.Errors.Add("Failed to fetch barber Queue !");
-                                    return result;
-                                }
-                            }
-                            else
-                            {
-                                result.Data = "Error.";
-                                result.Errors.Add("Error Finalizing order !");
-                                result.Succeeded = false;
-                                return result;
-                            }
-                        }
-                        else
-                        {
-                            result.Data = "Error.";
-                            result.Errors.Add("Error fetching customer details !");
-                            result.Succeeded = false;
-                            return result;
-
-                        }
                     }
-                    else
+
+                    //Create complete order
+                    var completeOrderCreationResult = await unitOfWork.CompleteOrdersManager.CreateAsync(completeOrder);
+                    barber.NumberOfCustomersHandled++; // Increase barber # of customers handled counter
+                    customer.LastVisitDate = DateTime.Now; // Update customer last visit date.
+
+                    await unitOfWork.OrdersManager.RemoveAsync(order); // Remove order record.
+
+                    await unitOfWork.SaveChangesAsync();
+
+                    //Create order feedback
+                    OrderFeedback orderFeedback = new OrderFeedback();
+                    orderFeedback.IsSubmitted = false;
+                    orderFeedback.CompleteOrderId = completeOrderCreationResult.Id;
+
+                    var orderFeedbackCreationResult = await unitOfWork.OrderFeedBacksManager.CreateAsync(orderFeedback);
+                    await unitOfWork.SaveChangesAsync();
+
+                    //Create Orderfeedback questions
+
+                    for(int i=0; i<orderServicesHistory.Count; i++)
                     {
-                        result.Data = "Error";
-                        result.Succeeded = false;
-                        result.Errors.Add("Could not fetch order service");
-                        return result;
+                        var serviceToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
+                        var service = serviceToFetch.FirstOrDefault();
+
+                        OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
+                        orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
+                        orderFeedbackQuestionToCreate.QuestionAR = service.QuestionAR;
+                        orderFeedbackQuestionToCreate.QuestionEN = service.QuestionEN;
+                        orderFeedbackQuestionToCreate.Rating = 0;
+
+                        var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
+                        await unitOfWork.SaveChangesAsync();
                     }
+                    result.Succeeded = true;
+                    result.Data = "Finalized successfully";
+                    return result;
                 }
                 else
                 {
-
-                    result.Data = "Error finding order";
-                    result.Succeeded = true;
+                    result.Errors.Add("Failed to fetch order");
+                    result.Succeeded = false;
                     return result;
                 }
             }
@@ -441,7 +373,175 @@ namespace TopSaloon.ServiceLayer
                 result.Errors.Add(ex.Message);
                 return result;
             }
-            }
+        }
+        //public async Task<ApiResponse<string>> FinalizeOrder(int orderId)
+        //    {
+        //        ApiResponse<string> result = new ApiResponse<string>();
+
+        //    try
+        //    {
+        //        var order = await unitOfWork.OrdersManager.GetAsync(b => b.Id == orderId, 0, 0, null, includeProperties: "OrderServices");
+
+        //        Order OrderToUpdate = order.FirstOrDefault();
+
+        //        CompleteOrder OrderHistory = new CompleteOrder();
+
+        //        OrderHistory.OrderServicesList = "";
+
+        //        if (OrderToUpdate != null)
+        //        {
+        //            var customer = await unitOfWork.CustomersManager.GetByIdAsync(OrderToUpdate.CustomerId);
+
+        //            if (customer != null)
+        //            {
+        //                OrderToUpdate.Status = "Done";
+        //                OrderHistory.OrderDateTime = OrderToUpdate.OrderDate;
+        //                OrderHistory.OrderFinishTime = OrderToUpdate.FinishTime;
+        //                OrderHistory.OrderTotalAmount = OrderToUpdate.OrderTotal;
+        //                OrderHistory.CustomerWaitingTimeInMinutes = OrderToUpdate.WaitingTimeInMinutes;
+        //                OrderHistory.Status = OrderToUpdate.Status;
+        //                OrderHistory.CustomerId = customer.Id;
+
+        //                for (int i = 0; i < OrderToUpdate.OrderServices.Count; i++)
+        //                {
+        //                    if (OrderToUpdate.OrderServices[i].IsConfirmed.Value == true )
+        //                    {
+        //                        OrderHistory.OrderServicesList = OrderHistory.OrderServicesList + OrderToUpdate.OrderServices[i].ServiceId + ","; 
+        //                    }
+        //                }
+
+        //                var OrderUpdateResult = await unitOfWork.OrdersManager.UpdateAsync(OrderToUpdate);
+
+
+        //                if (OrderUpdateResult)
+        //                {
+        //                    var barberQueue = await unitOfWork.BarbersQueuesManager.GetAsync(b => b.Id == OrderToUpdate.BarberQueueId, 0, 0, null, includeProperties: "Orders");
+
+        //                    if (barberQueue != null)
+        //                    {
+        //                        BarberQueue QueueToUpdate = barberQueue.FirstOrDefault();
+
+        //                        for (int i = 0; i < QueueToUpdate.Orders.Count; i++)
+        //                        {
+        //                            if (QueueToUpdate.Orders[i].Id == orderId)
+        //                            {
+        //                                QueueToUpdate.Orders.Remove(QueueToUpdate.Orders[i]);
+        //                            }
+        //                        }
+
+        //                        if (QueueToUpdate.Orders.Count == 0)
+        //                        {
+        //                            QueueToUpdate.QueueStatus = "idle";
+        //                        }
+        //                        else //Re-Adjust Queue Finish Time For Remaining Orders
+        //                        {
+
+        //                            await SetQueueWaitingTimes();
+        //                        }
+
+        //                        OrderHistory.BarberId = QueueToUpdate.BarberId;
+        //                        await unitOfWork.BarbersQueuesManager.UpdateAsync(QueueToUpdate);
+        //                        var completeOrder = await unitOfWork.CompleteOrdersManager.CreateAsync(OrderHistory);
+        //                        await unitOfWork.SaveChangesAsync();
+
+        //                        if (completeOrder != null)
+        //                        {
+
+        //                            OrderFeedback orderFeedback = new OrderFeedback();
+        //                            orderFeedback.CompleteOrderId = completeOrder.Id;
+        //                            orderFeedback.IsSubmitted = false;
+        //                            var createdOrderFeedback = await unitOfWork.OrderFeedBacksManager.CreateAsync(orderFeedback);
+        //                            await unitOfWork.SaveChangesAsync();
+        //                            OrderToUpdate.OrderServices = OrderToUpdate.OrderServices.Where(o => o.IsConfirmed == true).ToList();
+        //                            for (int i = 0; i < OrderToUpdate.OrderServices.Count; i++)
+        //                            {
+
+        //                                    var ServiceQuestionsToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == OrderToUpdate.OrderServices[i].ServiceId);
+        //                                    var ServiceQuestions = ServiceQuestionsToFetch.FirstOrDefault();
+
+        //                                OrderFeedbackQuestion orderFeedbackQuestion = new OrderFeedbackQuestion
+        //                                {
+        //                                    QuestionAR = ServiceQuestions.QuestionAR,
+        //                                    QuestionEN = ServiceQuestions.QuestionEN,
+        //                                    //OrderFeedbackId = createdOrderFeedback.Id,
+        //                                    Rating = 0
+        //                                };
+
+        //                                await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestion);
+        //                                await unitOfWork.SaveChangesAsync();
+
+        //                            }
+
+        //                            Barber barberToUpdate = await unitOfWork.BarbersManager.GetByIdAsync(completeOrder.BarberId);
+
+        //                            barberToUpdate.NumberOfCustomersHandled++;
+
+        //                            var barberUpdateResult = await unitOfWork.BarbersManager.UpdateAsync(barberToUpdate);
+
+        //                            if(barberUpdateResult == true)
+        //                            {
+        //                                customer.TotalNumberOfVisits++;
+
+        //                                await unitOfWork.SaveChangesAsync();
+
+        //                                result.Data = "Order finalized successfully.";
+        //                                result.Succeeded = true;
+        //                                return result;
+        //                            }
+        //                            else
+        //                            {
+        //                                result.Data = "Error";
+        //                                result.Errors.Add("Failed to update barber !");
+        //                                return result;
+        //                            }
+        //                        }
+        //                        else
+        //                        {
+        //                            result.Data = "Error";
+        //                            result.Errors.Add("Failed to fetch barber Queue !");
+        //                            return result;
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        result.Data = "Error.";
+        //                        result.Errors.Add("Error Finalizing order !");
+        //                        result.Succeeded = false;
+        //                        return result;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    result.Data = "Error.";
+        //                    result.Errors.Add("Error fetching customer details !");
+        //                    result.Succeeded = false;
+        //                    return result;
+
+        //                }
+        //            }
+        //            else
+        //            {
+        //                result.Data = "Error";
+        //                result.Succeeded = false;
+        //                result.Errors.Add("Could not fetch order service");
+        //                return result;
+        //            }
+        //        }
+        //        else
+        //        {
+
+        //            result.Data = "Error finding order";
+        //            result.Succeeded = true;
+        //            return result;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.Succeeded = false;
+        //        result.Errors.Add(ex.Message);
+        //        return result;
+        //    }
+        //    }
 
         public async Task<ApiResponse<bool>> SetQueueWaitingTimes()
         {

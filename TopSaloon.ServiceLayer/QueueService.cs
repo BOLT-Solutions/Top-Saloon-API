@@ -108,6 +108,8 @@ namespace TopSaloon.ServiceLayer
                         }
                         if (addOrderServiceErrorCounter == 0)
                         {
+                            currentCustomer.LastVisitDate = DateTime.Now;
+
                             await unitOfWork.SaveChangesAsync();
                             await SetQueueWaitingTimes(); // adjust queue time
                             result.Succeeded = true;
