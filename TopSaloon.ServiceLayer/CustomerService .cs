@@ -467,9 +467,8 @@ namespace TopSaloon.ServiceLayer
                 var cust = await unitOfWork.CustomersManager.GetCustomerByPhoneNumber(model.PhoneNumber);
 
 
-                if (customer.Id == cust.Id)
+                if (cust == null)
                 {
-
                     customer.Name = model.Name;
                     customer.PhoneNumber = model.PhoneNumber;
                     customer.Email = model.Email;
@@ -487,19 +486,47 @@ namespace TopSaloon.ServiceLayer
                     else
                     {
                         result.Succeeded = false;
-                        result.Errors.Add("Error updating service !");
+                        result.Errors.Add("Error updating customer details !");
                         result.ErrorType = ErrorType.LogicalError;
                         return result;
                     }
                 }
                 else
                 {
-                    result.Succeeded = false;
-                    result.Errors.Add("A customer with a similar name already exists !");
-                    result.ErrorType = ErrorType.LogicalError;
-                    return result;
-                }
-                    
+
+                    if(cust.Id == customer.Id)
+                    {
+                        customer.Name = model.Name;
+                        customer.PhoneNumber = model.PhoneNumber;
+                        customer.Email = model.Email;
+
+                        await unitOfWork.CustomersManager.UpdateAsync(customer);
+
+                        var res = await unitOfWork.SaveChangesAsync();
+
+                        if (res == true)
+                        {
+
+                            result.Succeeded = true;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Error updating customer details !");
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
+
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("A customer with a similar number already exists !");
+                        result.ErrorType = ErrorType.LogicalError;
+                        return result;
+                    }
+                }           
             }
             catch (Exception ex)
             {
@@ -509,6 +536,51 @@ namespace TopSaloon.ServiceLayer
             }
             return result;
         }
+
+        public async Task<ApiResponse<bool>> DeleteCustomerById(int id)
+        {
+            ApiResponse<bool> result = new ApiResponse<bool>();
+
+            try
+            {
+                var customerToDelete = await unitOfWork.CustomersManager.GetByIdAsync(id);
+
+                if (customerToDelete != null)
+                {
+                    var RemoveCustomerResult = await unitOfWork.CustomersManager.RemoveAsync(customerToDelete);
+
+                    await unitOfWork.SaveChangesAsync();
+
+                    if (RemoveCustomerResult == true)
+                    {
+                        result.Data = true;
+                        result.Succeeded = true;
+                        result.Errors.Add("Customer deleted successfully !");
+                        return result;
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("Failed to delete customer !");
+                        return result;
+                    }
+
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("Failed to fetch customer with specified id !");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+        }
+
 
     }
 }
