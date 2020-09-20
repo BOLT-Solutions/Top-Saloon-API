@@ -38,6 +38,22 @@ namespace TopSaloon.ServiceLayer
 
                 if (customer != null)
                 {
+
+
+                    if (customer.TotalNumberOfVisits == null)
+                    {
+                        customer.TotalNumberOfVisits = 1;
+                        customer.LastVisitDate = DateTime.Now;
+                    }
+                    else
+                    {
+                        customer.TotalNumberOfVisits++;
+                        customer.LastVisitDate = DateTime.Now;
+                    }
+
+
+                    await unitOfWork.SaveChangesAsync();
+
                     CustomerInfoDTO customerInfo = new CustomerInfoDTO();
                     customerInfo.Id = customer.Id;
                     customerInfo.Name = customer.Name;
@@ -45,7 +61,6 @@ namespace TopSaloon.ServiceLayer
                     customerInfo.LastVisitDate = customer.LastVisitDate;
                     customerInfo.TotalNumberOfVisits = customer.TotalNumberOfVisits;
                     customerInfo.PhoneNumber = customer.PhoneNumber;
-
 
                     result.Data = customerInfo;
                     result.Succeeded = true;
@@ -72,7 +87,6 @@ namespace TopSaloon.ServiceLayer
                 newCustomer.Name = model.Name;
                 newCustomer.PhoneNumber = model.PhoneNumber;
                 newCustomer.Email = model.Email;
-
                 newCustomer.TotalNumberOfVisits = 0;
 
                 Customer customerResult = await unitOfWork.CustomersManager.GetCustomerByPhoneNumber(model.PhoneNumber);
@@ -282,6 +296,8 @@ namespace TopSaloon.ServiceLayer
 
                         customer.Email = "Guest";
 
+                        customer.TotalNumberOfVisits = 1;
+
                         var customerResult = await unitOfWork.CustomersManager.CreateAsync(customer);
 
                         var guestNumberUpdateResult = await unitOfWork.GuestNumberManager.GetByIdAsync(currentGuestNumber.Id);
@@ -334,9 +350,11 @@ namespace TopSaloon.ServiceLayer
 
                     customer.LastVisitDate = DateTime.Now;
 
-                    customer.PhoneNumber = "00000000";
+                    customer.PhoneNumber = "*******";
 
-                    customer.Email = "Guest";
+                    customer.Email = "*******";
+
+                    customer.TotalNumberOfVisits = 1;
 
                     var customerResult = await unitOfWork.CustomersManager.CreateAsync(customer);
 
@@ -448,20 +466,21 @@ namespace TopSaloon.ServiceLayer
                 Customer customer = await unitOfWork.CustomersManager.GetByIdAsync(model.Id);
                 var cust = await unitOfWork.CustomersManager.GetCustomerByPhoneNumber(model.PhoneNumber);
 
-                if(model.PhoneNumber==customer.PhoneNumber || cust==null )
+
+                if (customer.Id == cust.Id)
                 {
 
                     customer.Name = model.Name;
                     customer.PhoneNumber = model.PhoneNumber;
                     customer.Email = model.Email;
-                  
+
                     await unitOfWork.CustomersManager.UpdateAsync(customer);
 
                     var res = await unitOfWork.SaveChangesAsync();
 
-                    if(res == true)
+                    if (res == true)
                     {
-                      
+
                         result.Succeeded = true;
                         return result;
                     }
@@ -473,11 +492,10 @@ namespace TopSaloon.ServiceLayer
                         return result;
                     }
                 }
-               
                 else
                 {
                     result.Succeeded = false;
-                    result.Errors.Add("A customer with a similar name alreadyd exists !");
+                    result.Errors.Add("A customer with a similar name already exists !");
                     result.ErrorType = ErrorType.LogicalError;
                     return result;
                 }

@@ -326,7 +326,6 @@ namespace TopSaloon.ServiceLayer
                     //Create complete order
                     var completeOrderCreationResult = await unitOfWork.CompleteOrdersManager.CreateAsync(completeOrder);
                     barber.NumberOfCustomersHandled++; // Increase barber # of customers handled counter
-                    customer.LastVisitDate = DateTime.Now; // Update customer last visit date.
 
                     await unitOfWork.OrdersManager.RemoveAsync(order); // Remove order record.
 

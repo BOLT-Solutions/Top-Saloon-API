@@ -230,13 +230,16 @@ namespace TopSaloon.ServiceLayer
                 if (CO != null)
                 {
                     List<CompleteOrder> Temp = new List<CompleteOrder>();
-                    DateTime currentholding =(DateTime)CoList[0].OrderDateTime; 
+                    DateTime? currentholding = CoList[0].OrderDateTime;
+                    
                     for (int i = 0; i < x; i++)
                     {
-                        Temp.Add(CoList[current]); 
+                        Temp.Add(CoList[current]);
+
                         for (int j = current; j < CoList.Count(); j++)
                         {
-                            if (currentholding == CoList[j].OrderDateTime)
+                           
+                            if (currentholding.Value == CoList[j].OrderDateTime)
                             {
                                 if (first)
                                 {

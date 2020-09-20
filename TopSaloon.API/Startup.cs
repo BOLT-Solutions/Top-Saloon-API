@@ -37,7 +37,7 @@ namespace TopSaloon.API
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC15\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssword;"));
 
-            // services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=192.168.5.202; Database=TOPSALOON; User ID=sa; password=S3cur!ty;"));
+           // services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=192.168.5.202; Database=TOPSALOON; User ID=sa; password=S3cur!ty;"));
 
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -46,7 +46,7 @@ namespace TopSaloon.API
 
             services.AddCors(options =>
                 options.AddDefaultPolicy(builder =>
-                    builder.WithOrigins("http://localhost:4200", "http://localhost:4471", "http://localhost:4472")
+                    builder.WithOrigins("http://localhost:4200", "http://localhost:4201", "http://localhost:4471", "http://localhost:4472")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()));
@@ -102,7 +102,7 @@ namespace TopSaloon.API
             app.UseCors(policy => policy
            .AllowAnyHeader()
            .AllowAnyMethod()
-           .WithOrigins("http://localhost:4200", "http://localhost:4471", "http://localhost:4472")
+           .WithOrigins("http://localhost:4200","http://localhost:4201" , "http://localhost:4471", "http://localhost:4472")
            .AllowCredentials());
 
             app.UseRouting();

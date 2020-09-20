@@ -533,6 +533,8 @@ namespace TopSaloon.ServiceLayer
 
                         barberLoginToEdit.logoutDateTime = DateTime.Now;
 
+                        barber.Status = "Unavailable";
+
                         var res = await unitOfWork.BarberLoginsManager.UpdateAsync(barberLoginToEdit);
 
                         await unitOfWork.SaveChangesAsync();
