@@ -55,25 +55,151 @@ namespace TopSaloon.ServiceLayer
             }
         }
 
+        //public async Task<ApiResponse<bool>> AddOrderToQueue(OrderToAddDTO addOrderRequest)
+        //{
+        //    var result = new ApiResponse<bool>();
+        //    BarberQueue currentQueue;
+        //    Customer currentCustomer;
+        //    Order orderToAdd = new Order();
+        //    TimeSpan? waitingTime;
+        //    try
+        //    {
+        //        //Map order services from the add order request .
+        //        orderToAdd.OrderServices = new List<OrderService>();
+        //        orderToAdd.OrderServices = mapper.Map<List<OrderService>>(addOrderRequest.OrderServices);
+        //        //Set queue waiting times to check for inactive orders.
+        //        await SetQueueWaitingTimes();
+        //        //Fetch barber queue to add order to . 
+        //        var barberQueueResult = await unitOfWork.BarbersQueuesManager.GetAsync(b => b.Id == addOrderRequest.BarberQueueId, includeProperties: "Orders");
+        //        currentQueue = barberQueueResult.FirstOrDefault();
+        //        //Fetch customer.
+        //        currentCustomer = await unitOfWork.CustomersManager.GetByIdAsync(addOrderRequest.CustomerId);
+        //        //Calculate order total and total service time .
+        //        orderToAdd.TotalServicesWaitingTime = 0;
+        //        orderToAdd.OrderTotal = 0;
+        //        orderToAdd.CustomerId = currentCustomer.Id;
+        //        orderToAdd.CustomerName = currentCustomer.Name;
+        //        orderToAdd.CustomerMobile = currentCustomer.PhoneNumber;
+        //        orderToAdd.BarberQueueId = currentQueue.Id;
+        //        orderToAdd.OrderDate = DateTime.Now;
+        //        orderToAdd.WaitingTimeInMinutes = 0;
+        //        for (int i = 0; i < orderToAdd.OrderServices.Count; i++)
+        //        {
+        //            orderToAdd.TotalServicesWaitingTime += orderToAdd.OrderServices[i].Time;
+        //            orderToAdd.OrderTotal += orderToAdd.OrderServices[i].Price;
+        //            orderToAdd.OrderServices[i].IsConfirmed = false;
+        //        }
+        //        if (currentQueue.Orders.Count == 0) // if queue is empty . 
+        //        {
+        //            orderToAdd.FinishTime = DateTime.Now.AddMinutes(Convert.ToDouble(orderToAdd.TotalServicesWaitingTime));
+        //            orderToAdd.Status = "Inprogress";
+        //            currentQueue.QueueStatus = "busy";
+        //            var addOrderResult = await unitOfWork.OrdersManager.CreateAsync(orderToAdd);
+        //            if (addOrderResult != null)
+        //            {
+        //                int addOrderServiceErrorCounter = 0;
+        //                for (int i = 0; i < orderToAdd.OrderServices.Count; i++)
+        //                {
+        //                    var addOrderServiceResult = await unitOfWork.OrderServicesManager.CreateAsync(orderToAdd.OrderServices[i]);
+        //                    if (addOrderServiceResult == null)
+        //                    {
+        //                        addOrderServiceErrorCounter++;
+        //                    }
+        //                }
+        //                if (addOrderServiceErrorCounter == 0)
+        //                {
+        //                    currentCustomer.LastVisitDate = DateTime.Now;
+
+        //                    await unitOfWork.SaveChangesAsync();
+        //                    await SetQueueWaitingTimes(); // adjust queue time
+        //                    result.Succeeded = true;
+        //                    return result;
+        //                }
+        //                else
+        //                {
+        //                    result.Succeeded = false;
+        //                    result.Errors.Add("Error adding order services !");
+        //                    return result;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                result.Succeeded = false;
+        //                result.Errors.Add("Failed to add order !");
+        //                return result;
+        //            }
+        //        }
+        //        else // Queue has orders
+        //        {
+        //            // Calculate order waiting time from last order in queue
+        //            waitingTime = currentQueue.Orders[currentQueue.Orders.Count - 1].FinishTime.Value - orderToAdd.OrderDate;
+        //            if (waitingTime.HasValue)
+        //            {
+        //                orderToAdd.WaitingTimeInMinutes = Convert.ToInt32(waitingTime.Value.TotalMinutes);
+        //                orderToAdd.FinishTime = currentQueue.Orders[currentQueue.Orders.Count - 1].FinishTime.Value.AddMinutes(Convert.ToDouble(orderToAdd.WaitingTimeInMinutes.Value));
+        //            }
+        //            orderToAdd.Status = "Pending";
+        //            var addOrderResult = await unitOfWork.OrdersManager.CreateAsync(orderToAdd);
+        //            if (addOrderResult != null)
+        //            {
+        //                int addOrderServiceErrorCounter = 0;
+        //                for (int i = 0; i < orderToAdd.OrderServices.Count; i++)
+        //                {
+        //                    var addOrderServiceResult = await unitOfWork.OrderServicesManager.CreateAsync(orderToAdd.OrderServices[i]);
+        //                    if (addOrderServiceResult == null)
+        //                    {
+        //                        addOrderServiceErrorCounter++;
+        //                    }
+        //                }
+        //                if (addOrderServiceErrorCounter == 0)
+        //                {
+        //                    await unitOfWork.SaveChangesAsync();
+        //                    await SetQueueWaitingTimes(); //adjust queue waiting time.
+        //                    result.Succeeded = true;
+        //                    return result;
+        //                }
+        //                else
+        //                {
+        //                    result.Succeeded = false;
+        //                    result.Errors.Add("Error adding order services !");
+        //                    return result;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                result.Succeeded = false;
+        //                result.Errors.Add("Error creating Order !");
+        //                return result;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.Succeeded = false;
+        //        result.Errors.Add(ex.Message);
+        //        return result;
+        //    }
+        //}
+
         public async Task<ApiResponse<bool>> AddOrderToQueue(OrderToAddDTO addOrderRequest)
         {
             var result = new ApiResponse<bool>();
             BarberQueue currentQueue;
             Customer currentCustomer;
             Order orderToAdd = new Order();
-            TimeSpan? waitingTime;
             try
             {
                 //Map order services from the add order request .
                 orderToAdd.OrderServices = new List<OrderService>();
                 orderToAdd.OrderServices = mapper.Map<List<OrderService>>(addOrderRequest.OrderServices);
-                //Set queue waiting times to check for inactive orders.
-                await SetQueueWaitingTimes();
+
                 //Fetch barber queue to add order to . 
                 var barberQueueResult = await unitOfWork.BarbersQueuesManager.GetAsync(b => b.Id == addOrderRequest.BarberQueueId, includeProperties: "Orders");
                 currentQueue = barberQueueResult.FirstOrDefault();
+
                 //Fetch customer.
                 currentCustomer = await unitOfWork.CustomersManager.GetByIdAsync(addOrderRequest.CustomerId);
+
                 //Calculate order total and total service time .
                 orderToAdd.TotalServicesWaitingTime = 0;
                 orderToAdd.OrderTotal = 0;
@@ -81,20 +207,26 @@ namespace TopSaloon.ServiceLayer
                 orderToAdd.CustomerName = currentCustomer.Name;
                 orderToAdd.CustomerMobile = currentCustomer.PhoneNumber;
                 orderToAdd.BarberQueueId = currentQueue.Id;
-                orderToAdd.OrderDate = DateTime.Now;
                 orderToAdd.WaitingTimeInMinutes = 0;
+
                 for (int i = 0; i < orderToAdd.OrderServices.Count; i++)
                 {
                     orderToAdd.TotalServicesWaitingTime += orderToAdd.OrderServices[i].Time;
                     orderToAdd.OrderTotal += orderToAdd.OrderServices[i].Price;
                     orderToAdd.OrderServices[i].IsConfirmed = false;
                 }
-                if (currentQueue.Orders.Count == 0) // if queue is empty . 
+
+
+                // if queue is empty . 
+                if (currentQueue.Orders.Count == 0)
                 {
+                    orderToAdd.OrderDate = DateTime.Now;
                     orderToAdd.FinishTime = DateTime.Now.AddMinutes(Convert.ToDouble(orderToAdd.TotalServicesWaitingTime));
                     orderToAdd.Status = "Inprogress";
                     currentQueue.QueueStatus = "busy";
+
                     var addOrderResult = await unitOfWork.OrdersManager.CreateAsync(orderToAdd);
+
                     if (addOrderResult != null)
                     {
                         int addOrderServiceErrorCounter = 0;
@@ -129,17 +261,16 @@ namespace TopSaloon.ServiceLayer
                         return result;
                     }
                 }
-                else // Queue has orders
+
+                // Queue has orders
+                else
                 {
-                    // Calculate order waiting time from last order in queue
-                    waitingTime = currentQueue.Orders[currentQueue.Orders.Count - 1].FinishTime.Value - orderToAdd.OrderDate;
-                    if (waitingTime.HasValue)
-                    {
-                        orderToAdd.WaitingTimeInMinutes = Convert.ToInt32(waitingTime.Value.TotalMinutes);
-                        orderToAdd.FinishTime = currentQueue.Orders[currentQueue.Orders.Count - 1].FinishTime.Value.AddMinutes(Convert.ToDouble(orderToAdd.WaitingTimeInMinutes.Value));
-                    }
+                    orderToAdd.OrderDate = currentQueue.Orders[currentQueue.Orders.Count - 1].FinishTime;
+                    orderToAdd.FinishTime = orderToAdd.OrderDate.Value.AddMinutes(Convert.ToDouble(orderToAdd.TotalServicesWaitingTime));
                     orderToAdd.Status = "Pending";
+
                     var addOrderResult = await unitOfWork.OrdersManager.CreateAsync(orderToAdd);
+
                     if (addOrderResult != null)
                     {
                         int addOrderServiceErrorCounter = 0;
@@ -154,7 +285,7 @@ namespace TopSaloon.ServiceLayer
                         if (addOrderServiceErrorCounter == 0)
                         {
                             await unitOfWork.SaveChangesAsync();
-                            await SetQueueWaitingTimes(); //adjust queue waiting time.
+                            //await SetQueueWaitingTimes(); //adjust queue waiting time.
                             result.Succeeded = true;
                             return result;
                         }
@@ -180,14 +311,16 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
+
         public async Task<ApiResponse<bool>> SetQueueWaitingTimes()
         {
             var result = new ApiResponse<bool>();
             try
             {
-                var barberQueuesToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(includeProperties: "Orders");
-                List<BarberQueue> barberQueue = barberQueuesToFetch.ToList();
-                TimeSpan? waitingTime;
+                var barberQueuesResult = await unitOfWork.BarbersQueuesManager.GetAsync(includeProperties: "Orders");
+                List<BarberQueue> barberQueue = barberQueuesResult.ToList();
+                TimeSpan? orderTimeDifference;
+                DateTime newDate;
                 if (barberQueue != null)
                 {
                     int countErrors = 0;
@@ -196,27 +329,27 @@ namespace TopSaloon.ServiceLayer
                     {
                         if (barberQueue[i].Orders.Count > 0)
                         { // validate orders count in queue
-                            if (DateTime.Now > barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime) // Last order finish time in queue is passed.
+                            if (DateTime.Now > barberQueue[i].Orders[0].FinishTime) // Last order finish time in queue is passed.
                             {
-                                barberQueue[i].QueueWaitingTime = 0;
-                                barberQueue[i].QueueStatus = "idle";
-                                barberQueue[i].Orders.Clear();
+                                newDate = DateTime.Now;
+                                newDate = newDate.AddMinutes(5);
+                                barberQueue[i].Orders[0].FinishTime = newDate;
+
+                                for (int k = 1; k < barberQueue[i].Orders.Count; k++) // Update upcoming orders
+                                {
+                                        barberQueue[i].Orders[k].OrderDate = barberQueue[i].Orders[k - 1].FinishTime;
+                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k].OrderDate.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
+                                   
+                                }
+                                orderTimeDifference = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now;
+                                barberQueue[i].QueueWaitingTime = Convert.ToInt32(orderTimeDifference.Value.TotalMinutes);
+                                await unitOfWork.SaveChangesAsync();
                             }
                             else
                             {
-                                for (int k = 0; k < barberQueue[i].Orders.Count; k++)
-                                {
-                                    if (k == 0)
-                                    {
-                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k].OrderDate.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
-                                    }
-                                    else
-                                    {
-                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k - 1].FinishTime.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
-                                    }
-                                }
-                                waitingTime = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now; // calculate waiting from last order finish time in queue
-                                barberQueue[i].QueueWaitingTime = Convert.ToInt32(waitingTime.Value.TotalMinutes); // set waiting time in minutes.
+                                orderTimeDifference = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now;
+                                barberQueue[i].QueueWaitingTime =  Convert.ToInt32 (orderTimeDifference.Value.TotalMinutes);
+                                await unitOfWork.SaveChangesAsync();
                             }
                         }
                         else

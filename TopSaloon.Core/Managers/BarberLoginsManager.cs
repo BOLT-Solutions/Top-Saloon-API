@@ -16,5 +16,20 @@ namespace TopSaloon.Core.Managers
         {
 
         }
+
+           public async Task<int> GetSignedInbarbers(DateTime lastdate)
+         {
+
+            return await Task.Run(() =>
+            {
+                var myday = DateTime.Today;
+
+                int Result = context.BarberLogins.Where(A => A.LoginDateTime >= lastdate && A.logoutDateTime <= myday).Distinct().Count();
+
+                return Result;
+
+            });
+        }
+
     }
 }

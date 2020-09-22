@@ -414,7 +414,7 @@ namespace TopSaloon.ServiceLayer
                 var myday = DateTime.Today;
                 var lastdate = CalcDate(filter); 
 
-                var CO = await unitOfWork.DailyReportsManager.GetSigndInbarbers(lastdate);
+                var CO = await unitOfWork.BarberLoginsManager.GetSignedInbarbers(lastdate);
 
                 if (CO != 0)
                 {
@@ -426,7 +426,7 @@ namespace TopSaloon.ServiceLayer
                 else
                 {
                     result.Succeeded = false;
-                    result.Errors.Add("Could not Find Any Complete order");
+                    result.Errors.Add("Error finding barber logins !");
                     return result;
                 }
 
@@ -441,6 +441,11 @@ namespace TopSaloon.ServiceLayer
         }
 
         //helper
+
+
+
+
+
         private DateTime CalcDate(string filter )
         {
             var myday = DateTime.Today;

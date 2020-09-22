@@ -143,15 +143,28 @@ namespace TopSaloon.ServiceLayer
                 {
                     //Fetch barber queue from order.
                    var barberQueueToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == OrderToUpdate.BarberQueueId, includeProperties: "Orders");
-                    var barberQueue = barberQueueToFetch.FirstOrDefault();
+                    var queue = barberQueueToFetch.FirstOrDefault();
 
-                    if(barberQueue != null) { 
+                    if(queue != null) { 
                     //Fetch and remove order to remove from Queue order list
-                        var orderToRemove = barberQueue.Orders.Find(o => o.Id == Int32.Parse(orderId));
-                        barberQueue.Orders.Remove(orderToRemove);
+                        var orderToRemove = queue.Orders.Find(o => o.Id == Int32.Parse(orderId));
+                        queue.Orders.Remove(orderToRemove);
+
+                        for (int i = 0; i < queue.Orders.Count; i++) // Update upcoming orders
+                        {
+                            if(i ==0 )
+                            {
+                                queue.Orders[i].OrderDate = DateTime.Now;
+                                queue.Orders[i].FinishTime = queue.Orders[i].OrderDate.Value.AddMinutes(Convert.ToDouble(queue.Orders[i].TotalServicesWaitingTime));
+                            }
+                            else 
+                            {
+                                queue.Orders[i].OrderDate = queue.Orders[i - 1].FinishTime;
+                                queue.Orders[i].FinishTime = queue.Orders[i].OrderDate.Value.AddMinutes(Convert.ToDouble(queue.Orders[i].TotalServicesWaitingTime));
+                            } 
+                        }
 
                         await unitOfWork.SaveChangesAsync();
-                        await SetQueueWaitingTimes();
                         result.Data = "Order cancelled successfully.";
                         result.Succeeded = true;
                         return result;
@@ -249,14 +262,42 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<bool> result = new ApiResponse<bool>();
             try
             {
-                var orderToFetch = await unitOfWork.OrdersManager.GetByIdAsync(orderId);
+                var orderToUpdate = await unitOfWork.OrdersManager.GetByIdAsync(orderId);
 
 
-                if (orderToFetch != null) { 
-                    orderToFetch.OrderDate = DateTime.Now;
+                if (orderToUpdate != null) {
+                    orderToUpdate.OrderDate = DateTime.Now;
+                    orderToUpdate.FinishTime = orderToUpdate.OrderDate.Value.AddMinutes(Convert.ToDouble(orderToUpdate.TotalServicesWaitingTime));
 
+                    var queueToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == orderToUpdate.BarberQueueId, includeProperties: "Orders");
+                    var queue = queueToFetch.FirstOrDefault();
+
+                    if(queue != null) // queue found
+                    {
+                        if(queue.Orders.Count > 0) // queue orders found
+                        {
+                            for(int i=1; i< queue.Orders.Count; i++) // Update upcoming orders
+                            {
+                                queue.Orders[i].OrderDate = queue.Orders[i - 1].FinishTime;
+                                queue.Orders[i].FinishTime = queue.Orders[i].OrderDate.Value.AddMinutes(Convert.ToDouble(queue.Orders[i].TotalServicesWaitingTime));
+                            }                            
+                        }
+                        else
+                        {
+                            result.Errors.Add("Unable to fetch queue orders");
+                            result.Data = false;
+                            result.Succeeded = false;
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        result.Errors.Add("Unable to fetch queue");
+                        result.Data = false;
+                        result.Succeeded = false;
+                        return result;
+                    }
                     await unitOfWork.SaveChangesAsync();
-                    await SetQueueWaitingTimes();
 
                     result.Data = true;
                     result.Succeeded = true;
@@ -328,6 +369,25 @@ namespace TopSaloon.ServiceLayer
                     barber.NumberOfCustomersHandled++; // Increase barber # of customers handled counter
 
                     await unitOfWork.OrdersManager.RemoveAsync(order); // Remove order record.
+
+                    await unitOfWork.SaveChangesAsync();
+                    // Update upcoming orders
+
+                    var queueResult = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == order.BarberQueueId, includeProperties: "Orders");
+                    var queue = queueResult.FirstOrDefault();
+                    for (int i = 0; i < queue.Orders.Count; i++) 
+                    {
+                        if (i == 0)
+                        {
+                            queue.Orders[i].OrderDate = DateTime.Now;
+                            queue.Orders[i].FinishTime = queue.Orders[i].OrderDate.Value.AddMinutes(Convert.ToDouble(queue.Orders[i].TotalServicesWaitingTime));
+                        }
+                        else
+                        {
+                            queue.Orders[i].OrderDate = queue.Orders[i - 1].FinishTime;
+                            queue.Orders[i].FinishTime = queue.Orders[i].OrderDate.Value.AddMinutes(Convert.ToDouble(queue.Orders[i].TotalServicesWaitingTime));
+                        }
+                    }
 
                     await unitOfWork.SaveChangesAsync();
 
@@ -547,9 +607,10 @@ namespace TopSaloon.ServiceLayer
             var result = new ApiResponse<bool>();
             try
             {
-                var barberQueuesToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(includeProperties: "Orders");
-                List<BarberQueue> barberQueue = barberQueuesToFetch.ToList();
-                TimeSpan? waitingTime;
+                var barberQueuesResult = await unitOfWork.BarbersQueuesManager.GetAsync(includeProperties: "Orders");
+                List<BarberQueue> barberQueue = barberQueuesResult.ToList();
+                TimeSpan? orderTimeDifference;
+                DateTime newDate;
                 if (barberQueue != null)
                 {
                     int countErrors = 0;
@@ -558,28 +619,33 @@ namespace TopSaloon.ServiceLayer
                     {
                         if (barberQueue[i].Orders.Count > 0)
                         { // validate orders count in queue
-                            if (DateTime.Now > barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime) // Last order finish time in queue is passed.
+                            if (DateTime.Now > barberQueue[i].Orders[0].FinishTime) // Last order finish time in queue is passed.
                             {
-                                barberQueue[i].QueueWaitingTime = 0;
-                                barberQueue[i].QueueStatus = "idle";
-                                barberQueue[i].Orders.Clear();
+                                newDate = DateTime.Now;
+                                newDate = newDate.AddMinutes(5);
+                                barberQueue[i].Orders[0].FinishTime = newDate;
+
+                                for (int k = 1; k < barberQueue[i].Orders.Count; k++) // Update upcoming orders
+                                {
+                                    barberQueue[i].Orders[k].OrderDate = barberQueue[i].Orders[k - 1].FinishTime;
+                                    barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k].OrderDate.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
+
+                                }
+                                orderTimeDifference = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now;
+                                barberQueue[i].QueueWaitingTime = Convert.ToInt32(orderTimeDifference.Value.TotalMinutes);
+                                await unitOfWork.SaveChangesAsync();
                             }
                             else
                             {
-                                for(int k=0; k< barberQueue[i].Orders.Count; k++)
-                                {
-                                    if (k == 0)
-                                    {
-                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k].OrderDate.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
-                                    }
-                                    else
-                                    {
-                                        barberQueue[i].Orders[k].FinishTime = barberQueue[i].Orders[k - 1].FinishTime.Value.AddMinutes(Convert.ToDouble(barberQueue[i].Orders[k].TotalServicesWaitingTime));
-                                    }
-                                }
-                                waitingTime = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now; // calculate waiting from last order finish time in queue
-                                barberQueue[i].QueueWaitingTime = Convert.ToInt32(waitingTime.Value.TotalMinutes); // set waiting time in minutes.
+                                orderTimeDifference = barberQueue[i].Orders[barberQueue[i].Orders.Count - 1].FinishTime - DateTime.Now;
+                                barberQueue[i].QueueWaitingTime = Convert.ToInt32(orderTimeDifference.Value.TotalMinutes);
+                                await unitOfWork.SaveChangesAsync();
                             }
+                        }
+                        else
+                        {
+                            barberQueue[i].QueueWaitingTime = 0;
+                            barberQueue[i].QueueStatus = "idle";
                         }
                     }
                     if (countErrors > 0)

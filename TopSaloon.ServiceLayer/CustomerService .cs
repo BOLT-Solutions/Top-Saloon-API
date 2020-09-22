@@ -458,7 +458,7 @@ namespace TopSaloon.ServiceLayer
             }
 
         }
-        public async Task<ApiResponse<bool>> EditCustomer( CustomerEditDTO model)
+        public async Task<ApiResponse<bool>> EditCustomer( CustomerEditDTO model) 
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
             try
