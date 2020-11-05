@@ -207,7 +207,7 @@ namespace TopSaloon.ServiceLayer
                 orderToAdd.CustomerName = currentCustomer.Name;
                 orderToAdd.CustomerMobile = currentCustomer.PhoneNumber;
                 orderToAdd.BarberQueueId = currentQueue.Id;
-                orderToAdd.WaitingTimeInMinutes = 0;
+                orderToAdd.WaitingTimeInMinutes = currentQueue.QueueWaitingTime;
 
                 for (int i = 0; i < orderToAdd.OrderServices.Count; i++)
                 {

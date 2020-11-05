@@ -17,14 +17,39 @@ namespace TopSaloon.Core.Managers
 
         }
 
-           public async Task<int> GetSignedInbarbers(DateTime lastdate)
+        public async Task<int> GetSignedInbarbers(DateTime lastdate)
          {
 
             return await Task.Run(() =>
             {
-                var myday = DateTime.Today;
+                DateTime today = DateTime.Now;
 
-                int Result = context.BarberLogins.Where(A => A.LoginDateTime >= lastdate && A.logoutDateTime <= myday).Distinct().Count();
+                int Result = 0;
+
+
+                if(lastdate.Date == today.Date)
+                {
+                    Result = context.BarberLogins.Where(A => A.LoginDateTime.Value.Date == today.Date ).Count();
+                }
+                else
+                {
+                    Result = context.BarberLogins.Where(A => A.LoginDateTime.Value.Date >= lastdate.Date && A.LoginDateTime.Value.Date < today.Date).Count();
+                }
+
+                return Result;
+
+            });
+        }
+        public async Task<int> GetSignedInbarbers()
+        {
+
+            return await Task.Run(() =>
+            {
+                DateTime myday = DateTime.Now;
+            
+
+                int Result = context.BarberLogins.Where(A => A.LoginDateTime.Value.Date == myday.Date).Distinct().Count();
+                Result = Result + 0; 
 
                 return Result;
 

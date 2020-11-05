@@ -42,20 +42,7 @@ namespace TopSaloon.Core.Managers
 
             });
         }
-        public async Task<List<CompleteOrder>> CosteachDay()
-        {
 
-            return await Task.Run(() =>
-            {
-
-                List<CompleteOrder> Result = context.CompleteOrders.Where(A => A.Id != 0).ToList();
-                Result.GroupBy(a => a.OrderDateTime);
-                Result.OrderByDescending(x=>x.OrderDateTime); 
-
-                return Result;
-
-            });
-        }
 
 
     }

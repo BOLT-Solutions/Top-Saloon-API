@@ -345,8 +345,6 @@ namespace TopSaloon.ServiceLayer
             }
 
         }
-
-
         public async Task<ApiResponse<bool>> EditAdminById(editAdministrator adminDto)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
@@ -433,7 +431,6 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-
 
         //public async Task<ApiResponse<bool>> EditAdminById(editAdministrator adminDto)
         //{

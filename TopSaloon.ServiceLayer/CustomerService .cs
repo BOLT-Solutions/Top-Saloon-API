@@ -406,6 +406,15 @@ namespace TopSaloon.ServiceLayer
 
                 List<Customer> customerListToReturn = customerList.ToList();
 
+                for (int i = 0; i < customerListToReturn.Count; i++)
+                {
+
+                    for(int j = 0; j < customerListToReturn[i].CompleteOrders.Count; j++ )
+                    {
+
+                        customerListToReturn[i].CompleteOrders[j].OrderDateTime = customerListToReturn[i].CompleteOrders[j].OrderDateTime.Value.Date;
+                    }
+                }
 
                 if (customerListToReturn != null)
                 {
@@ -419,6 +428,7 @@ namespace TopSaloon.ServiceLayer
                     result.Succeeded = false;
                     return result;
                 }
+
             }
             catch (Exception ex)
             {

@@ -35,9 +35,12 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC15\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssword;"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC15\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssword;"));
 
-           //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=192.168.5.202; Database=TOPSALOON; User ID=sa; password=S3cur!ty;"));
+            ////services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
+            ////{
+            ////    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
+            ////}));
 
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -53,9 +56,10 @@ namespace TopSaloon.API
 
             //services.AddCors(options =>
             //   options.AddDefaultPolicy(builder =>
-            //       builder.WithOrigins("http://192.168.5.201:8005",
-            //                           "http://192.168.5.201:8006",
-            //                           "http://192.168.5.201:8009")
+            //       builder.WithOrigins("http://adminsalon.boltsmartsolutions.com",
+            //                           "https://adminsalon.boltsmartsolutions.com",
+            //                           "http://usersalon.boltsmartsolutions.com",
+            //                           "https://usersalon.boltsmartsolutions.com")
             //       .WithMethods("POST", "GET", "PUT")
             //       .WithHeaders("*")
             //       .AllowCredentials()
@@ -81,7 +85,7 @@ namespace TopSaloon.API
 
             app.UseDeveloperExceptionPage();
 
-           // app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseSwagger();
 
@@ -91,9 +95,10 @@ namespace TopSaloon.API
             });
 
             //app.UseCors(policy => policy
-            //   .WithOrigins("http://192.168.5.201:8005",
-            //               "http://192.168.5.201:8006",
-            //               "http://192.168.5.201:8009")
+            //   .WithOrigins("http://adminsalon.boltsmartsolutions.com",
+            //                "https://adminsalon.boltsmartsolutions.com",
+            //                "http://usersalon.boltsmartsolutions.com",
+            //                "https://usersalon.boltsmartsolutions.com")
             //   .WithMethods("POST", "GET", "PUT")
             //   .WithHeaders("*")
             //   .AllowCredentials()

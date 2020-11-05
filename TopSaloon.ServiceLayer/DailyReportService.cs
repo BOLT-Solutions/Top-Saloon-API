@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection.Metadata.Ecma335;
+using System.ComponentModel;
 
 namespace TopSaloon.ServiceLayer
 {
@@ -62,7 +63,9 @@ namespace TopSaloon.ServiceLayer
             {
                 //complete order object
                 var myday = DateTime.Today;
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A=>A.OrderDateTime.Value.Date >= myday );
+
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A=>A.OrderDateTime.Value.Date >= myday.Date );
+
                 if (CO != null)
                 {
                     result.Data = CO.Count();
@@ -105,7 +108,7 @@ namespace TopSaloon.ServiceLayer
 
                 }
                
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date >= myday);
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date >= myday.Date);
                 if (CO != null)
                 {
                     int total = 0;
@@ -121,7 +124,7 @@ namespace TopSaloon.ServiceLayer
                 else
                 {
                     result.Succeeded = false;
-                    result.Errors.Add("Could not Find Any Complete order");
+                    result.Errors.Add("Could not find Any complete orders");
                     return result;
                 }
 
@@ -144,7 +147,7 @@ namespace TopSaloon.ServiceLayer
                 //complete order object
                 var myday = DateTime.Today;
 
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date >= myday);
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date >= myday.Date);
                 if (CO != null)
                 {
                     var COList = CO.ToList();
@@ -162,7 +165,7 @@ namespace TopSaloon.ServiceLayer
                 else
                 {
                     result.Succeeded = false;
-                    result.Errors.Add("Could not Find Any Complete order");
+                    result.Errors.Add("Could not find Any complete orders");
                     return result;
                 }
 
@@ -185,7 +188,8 @@ namespace TopSaloon.ServiceLayer
                 //complete order object
                 var myday = DateTime.Today;
 
-                var CO = await unitOfWork.DailyReportsManager.GetSigndInbarbers();
+                //var CO = await unitOfWork.DailyReportsManager.GetSigndInbarbers();
+                var CO = await unitOfWork.BarberLoginsManager.GetSignedInbarbers();
 
                 if (CO != 0)
                 {
@@ -197,7 +201,7 @@ namespace TopSaloon.ServiceLayer
                 else
                 {
                     result.Succeeded = false;
-                    result.Errors.Add("Could not Find Any Complete order");
+                    result.Errors.Add("Could not find Any complete orders");
                     return result;
                 }
 
@@ -210,84 +214,76 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-
         //GetTotalAmountOfCostPerDay
-        public async Task<ApiResponse<List<CompleteOrder>>> GetTotalAmountOfCostPerDay()
+        public async Task<ApiResponse<List<CostResultDTO>>> GetTotalAmountOfCostPerDay()
         {
 
-            ApiResponse<List<CompleteOrder>> result = new ApiResponse<List<CompleteOrder>>();
+            ApiResponse<List<CostResultDTO>> result = new ApiResponse<List<CostResultDTO>>();
 
             try
             {
 
-                var CO = await unitOfWork.DailyReportsManager.CosteachDay();
-                List<CompleteOrder> CoList = CO.ToList();
-                CoList = CoList.OrderByDescending(a => a.OrderDateTime).ToList(); 
-                int x =  CO.GroupBy(a=>a.OrderDateTime).Distinct().Count();
-                bool first = true;  
-                int current = 0; 
+                var completeOrdersResult = await unitOfWork.CompleteOrdersManager.GetAsync();
+                List<CostResultDTO> costResultList = new List<CostResultDTO>(); 
 
-                if (CO != null)
+
+                if(completeOrdersResult != null)
                 {
-                    List<CompleteOrder> Temp = new List<CompleteOrder>();
-                    DateTime? currentholding = CoList[0].OrderDateTime;
-                    
-                    for (int i = 0; i < x; i++)
+
+                    List<CompleteOrder> completeOrdersList = completeOrdersResult.ToList();
+
+
+                    for (int i = 0; i < completeOrdersList.Count; i++)
                     {
-                        Temp.Add(CoList[current]);
-
-                        for (int j = current; j < CoList.Count(); j++)
-                        {
-                           
-                            if (currentholding.Value == CoList[j].OrderDateTime)
-                            {
-                                if (first)
-                                {
-                                    first = false; 
-                                    continue; 
-                                    
-                                }
-                                else
-                                {
-                                    Temp[i].OrderTotalAmount += CoList[j].OrderTotalAmount;
-                                }
-                                
-
-                              
-                            }
-                            else
-                            {
-                                current = j;
-                                first = true; 
-                                break;  
-                            }
-                        }
-                        currentholding =(DateTime)CoList[current].OrderDateTime; 
- 
+                        completeOrdersList[i].OrderDateTime = completeOrdersList[i].OrderDateTime.Value.Date;
                     }
 
-                    result.Data = Temp;
+                    completeOrdersList = completeOrdersList.OrderByDescending(a => a.OrderDateTime.Value.Date).ToList();
+                    List<CompleteOrder> distinctCompleteOrdersList = completeOrdersList.GroupBy(a => a.OrderDateTime.Value.Date).Select(a=>a.First()).ToList() ;
+                    CostResultDTO costObject = new CostResultDTO(); 
+                    for (int i = 0; i < distinctCompleteOrdersList.Count(); i++)
+                    {
+                        double totalTmp = 0;
+                        costObject.Date = distinctCompleteOrdersList[i].OrderDateTime.Value.Date; 
+                        for (int j = 0; j < completeOrdersList.Count(); j++)
+                        {
+                            if (completeOrdersList[j].OrderDateTime == distinctCompleteOrdersList[i].OrderDateTime)
+                            {
+                                totalTmp += (float)completeOrdersList[j].OrderTotalAmount;
+                            }
+                          
+                        }
+                        costObject.Total = totalTmp;
+                      
+                        costResultList.Add(costObject);
+                        costObject = new CostResultDTO();
+
+                    }
+
+                    result.Data = costResultList;
                     result.Succeeded = true;
                     return result;
+
                 }
                 else
                 {
+
                     result.Succeeded = false;
                     result.Errors.Add("Could not Find Any Complete order");
                     return result;
                 }
-
-
             }
             catch (Exception ex)
             {
                 result.Succeeded = false;
-                result.Errors.Add(ex.Message);
+                 result.Errors.Add(ex.Message);
                 return result;
             }
         }
+
         /// per given date
         /// 
+
         public async Task<ApiResponse<int>> GetTotalNumberCustomer(string filter)
         {
 
@@ -295,10 +291,13 @@ namespace TopSaloon.ServiceLayer
 
             try
             {
-                //complete order object
-                var myday = DateTime.Today;
+                //complete order object 
+                var myday = DateTime.Now;
                 var lastdate = CalcDate(filter);
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime >= lastdate && A.OrderDateTime <= myday);
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date > lastdate.Date && A.OrderDateTime.Value.Date < DateTime.Now.Date);
+
+                List<CompleteOrder> completeOrdersList = CO.ToList();
+
                 if (CO != null)
                 {
                     result.Data = CO.Count();
@@ -329,10 +328,10 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object
-                var myday = DateTime.Today;
+                var myday = DateTime.Now;
                 var lastdate = CalcDate(filter); 
 
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime>=lastdate && A.OrderDateTime<=myday);
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date > lastdate.Date && A.OrderDateTime.Value.Date < DateTime.Now.Date);
                 if (CO != null)
                 {
                     int total = 0;
@@ -369,10 +368,11 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object
-                var myday = DateTime.Today;
+               var myday = DateTime.Now;
                var  lastdate = CalcDate(filter);
 
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime >= lastdate && A.OrderDateTime <= myday);
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date > lastdate.Date && A.OrderDateTime.Value.Date < DateTime.Now.Date);
+                
                 if (CO != null)
                 {
                     var COList = CO.ToList();
@@ -382,15 +382,17 @@ namespace TopSaloon.ServiceLayer
                     {
                         total += (float)COList[i].CustomerWaitingTimeInMinutes;
                     }
+
                     total = total / COList.Count();
                     result.Data = total;
                     result.Succeeded = true;
                     return result;
+
                 }
                 else
                 {
                     result.Succeeded = false;
-                    result.Errors.Add("Could not Find Any Complete order");
+                    result.Errors.Add("Could not find any complete orders");
                     return result;
                 }
 
@@ -411,9 +413,8 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object
-                var myday = DateTime.Today;
+                var myday = DateTime.Now;
                 var lastdate = CalcDate(filter); 
-
                 var CO = await unitOfWork.BarberLoginsManager.GetSignedInbarbers(lastdate);
 
                 if (CO != 0)
@@ -441,18 +442,14 @@ namespace TopSaloon.ServiceLayer
         }
 
         //helper
-
-
-
-
-
         private DateTime CalcDate(string filter )
         {
-            var myday = DateTime.Today;
+            var myday = DateTime.Now;
             int day = myday.Day;
             int month = myday.Month;
             int year = myday.Year;
             var lastdate = new DateTime();
+
             if (filter == "lastweek")
             {
                 if (day > 7)
@@ -486,7 +483,7 @@ namespace TopSaloon.ServiceLayer
                 lastdate = new DateTime(year - 1, month, day);
 
             }
-            return lastdate; 
+            return lastdate.Date; 
         }
     }
 }

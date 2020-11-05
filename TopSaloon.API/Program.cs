@@ -21,7 +21,7 @@ namespace TopSaloon.API
             //.Build();
             //var hostUrl = configuration["hosturl"];
             //if (string.IsNullOrEmpty(hostUrl))
-            //    hostUrl = "http://0.0.0.0:8007";
+            //    hostUrl = "http://0.0.0.0:8023";
             //var host = new WebHostBuilder()
             //    .UseKestrel()
             //    .UseUrls(hostUrl)   // <!-- this 
@@ -31,6 +31,7 @@ namespace TopSaloon.API
             //    .UseConfiguration(configuration)
             //    .Build();
             //host.Run();
+
         }
 
         //public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -38,7 +39,7 @@ namespace TopSaloon.API
         //        .ConfigureWebHostDefaults(webBuilder =>
         //        {
         //            webBuilder.UseStartup<Startup>();
-        //            webBuilder.UseUrls("http://192.168.5.201:8007");
+        //            webBuilder.UseUrls("http://138.201.213.62:8023");
         //        });
 
 

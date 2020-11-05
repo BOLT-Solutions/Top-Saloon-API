@@ -27,5 +27,5 @@ namespace TopSaloon.API.Extensions
             caller.AddScoped<DailyReportService>();
         }
     }
-    }
+  }
 
