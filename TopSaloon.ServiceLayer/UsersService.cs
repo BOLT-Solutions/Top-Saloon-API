@@ -226,9 +226,22 @@ namespace TopSaloon.ServiceLayer
                     if (res)
                     {
                         var admin = unitOfWork.AdministratorsManager.GetAdminByUserId(user.Id);
-                        result.Data = admin;
-                        result.Succeeded = true;
-                        return result;
+                        var adminRole = await unitOfWork.RoleManager.FindByIdAsync(admin.Role);
+                        if(adminRole !=null)
+                        {
+                            admin.Role = adminRole.Name;
+                            result.Data = admin;
+                            result.Succeeded = true;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Cannot Find Role");
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
+                       
                     }
                     else
                     {
