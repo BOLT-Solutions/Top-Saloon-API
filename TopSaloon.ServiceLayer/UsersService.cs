@@ -359,6 +359,62 @@ namespace TopSaloon.ServiceLayer
             }
 
         }
+        public async Task<ApiResponse<AdminCreationModel>> getSubAdminByRoleName(string RoleName)
+        {
+            ApiResponse<AdminCreationModel> result = new ApiResponse<AdminCreationModel>();
+            try
+            {
+                var getadmin = await unitOfWork.AdministratorsManager.GetAsync(b => b.Role == RoleName);
+
+                var getfirstadmin = getadmin.FirstOrDefault();
+
+                if(getfirstadmin !=null)
+                {
+                    var userData = await unitOfWork.UserManager.FindByIdAsync(getfirstadmin.UserId);
+                    if (userData != null)
+                    {
+                        AdministratorDTO adminDto = new AdministratorDTO();
+                        adminDto.Id = getfirstadmin.Id;
+                        adminDto.UserId = getfirstadmin.UserId;
+                        adminDto.ShopId = getfirstadmin.ShopId;
+                        adminDto.Role = getfirstadmin.Role;
+
+
+                        AdminCreationModel adminModel = new AdminCreationModel();
+
+                        adminModel.FirstName = userData.FirstName;
+                        adminModel.LastName = userData.LastName;
+                        adminModel.Email = userData.Email;
+                        adminModel.PhoneNumber = userData.PhoneNumber;
+
+
+                        result.Data = adminModel;
+                        result.Succeeded = true;
+                        return result;
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("User not found");
+                        return result;
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("cannot get user ");
+                    return result;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+
+        }
         public async Task<ApiResponse<bool>> EditAdminById(editAdministrator adminDto)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();

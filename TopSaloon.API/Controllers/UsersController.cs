@@ -60,6 +60,12 @@ namespace TopSaloon.API.Controllers
             return await GetResponseHandler(async () => await service.getAdminById(adminId));
         }
 
+        [HttpGet("getSubAdministratorByRoleName/{RoleName}")]
+        public async Task<IActionResult> GetsubAdminByRoleName(string RoleName)
+        {
+            return await GetResponseHandler(async () => await service.getSubAdminByRoleName(RoleName));
+        }
+
         [HttpPost("editAdministratorbyId")]
         public async Task<IActionResult> EditAdminByid( editAdministrator adminCreationModel)
         {
