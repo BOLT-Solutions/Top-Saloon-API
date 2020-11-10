@@ -29,8 +29,10 @@ namespace TopSaloon.DAL
         public virtual DbSet<SMS> SMS { get; set; }
         public virtual DbSet<CompleteOrder> CompleteOrders { get; set; }
         public virtual DbSet<BarberLogin> BarberLogins { get; set; }
-
         public virtual DbSet<GuestNumber> GuestNumber { get; set; }
+        public virtual DbSet<PromoCode> PromoCodes { get; set; }
+
+
 
     }
 }

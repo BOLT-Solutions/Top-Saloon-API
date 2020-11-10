@@ -30,6 +30,7 @@ namespace TopSaloon.API.AutoMapperConfig
             CreateMap<Shop, ShopDTO>().ReverseMap();
             CreateMap<SMS, SmsDTO>().ReverseMap();
             CreateMap<OrderService, OrderServiceToAddDTO>().ReverseMap();
+            CreateMap<PromoCode, PromoCodeDTO>().ReverseMap();
 
         }
     }

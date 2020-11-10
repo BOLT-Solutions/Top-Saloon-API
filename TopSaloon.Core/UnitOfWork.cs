@@ -261,6 +261,18 @@ namespace TopSaloon.Core
             }
         }
 
+        private PromoCodeManager promoCodeManager;
+        public PromoCodeManager PromoCodeManager
+        {
+            get
+            {
+                if (promoCodeManager == null)
+                {
+                    promoCodeManager = new PromoCodeManager(context);
+                }
+                return promoCodeManager;
+            }
+        }
 
     }
     
