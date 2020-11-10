@@ -34,7 +34,13 @@ namespace TopSaloon.API.Controllers
         [HttpPost("CreateAdminAccount")]
         public async Task<IActionResult> CreateAdmin(AdminCreationModel model)
         {
-            return await AddItemResponseHandler(async () => await service.CreateAdmin(model));
+            return await AddItemResponseHandler(async () => await service.CreateAdminAccount(model));
+        }
+
+        [HttpPost("CreateSuperAdminAccount")]
+        public async Task<IActionResult> CreateSuperAdminAccount(AdminCreationModel model)
+        {
+            return await AddItemResponseHandler(async () => await service.CreateSuperAdminAccount(model));
         }
 
         [HttpPost("DeleteAdmin")]
