@@ -31,7 +31,7 @@ namespace TopSaloon.Repository.Common
             Random random = new Random();
             string r = "";
             int i;
-            for (i = 1; i < 11; i++)
+            for (i = 1; i < 6; i++)
             {
                 r += random.Next(0, 9).ToString();
             }

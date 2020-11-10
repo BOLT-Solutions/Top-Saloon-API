@@ -37,6 +37,12 @@ namespace TopSaloon.API.Controllers
             return await EditItemResponseHandler(async () => await service.EditPromoCode(model));
         }
 
+        [HttpPost("ApplyPromoCode")]
+        public async Task<IActionResult> ApplyPromoCode(ApplyPromoCodeDTO model)
+        {
+            return await GetResponseHandler(async () => await service.ApplyPromoCode(model));
+        }
+
         [HttpGet("GetAllPromoCodes")]
         public async Task<IActionResult> GetAllPromoCodes()
         {
