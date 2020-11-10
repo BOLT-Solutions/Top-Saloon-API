@@ -220,6 +220,7 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 var user = await unitOfWork.UserManager.FindByEmailAsync(model.Email);
+
                 if (user != null)
                 {
                     bool res = await unitOfWork.UserManager.CheckPasswordAsync(user, model.Password);
