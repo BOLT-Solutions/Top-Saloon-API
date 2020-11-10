@@ -208,6 +208,7 @@ namespace TopSaloon.ServiceLayer
                 orderToAdd.CustomerMobile = currentCustomer.PhoneNumber;
                 orderToAdd.BarberQueueId = currentQueue.Id;
                 orderToAdd.WaitingTimeInMinutes = currentQueue.QueueWaitingTime;
+                orderToAdd.DiscountRate = addOrderRequest.DiscountRate;
 
                 for (int i = 0; i < orderToAdd.OrderServices.Count; i++)
                 {
@@ -215,6 +216,9 @@ namespace TopSaloon.ServiceLayer
                     orderToAdd.OrderTotal += orderToAdd.OrderServices[i].Price;
                     orderToAdd.OrderServices[i].IsConfirmed = false;
                 }
+
+                orderToAdd.OrderTotal = orderToAdd.OrderTotal - (orderToAdd.OrderTotal * (addOrderRequest.DiscountRate / 100));
+
 
 
                 // if queue is empty . 

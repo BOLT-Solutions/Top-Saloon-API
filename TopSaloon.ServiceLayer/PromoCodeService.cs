@@ -216,6 +216,71 @@ namespace TopSaloon.ServiceLayer
             }
         }
 
+        public async Task<ApiResponse<PromoCodeDTO>> ApplyPromoCode(ApplyPromoCodeDTO model)
+        {
+            ApiResponse<PromoCodeDTO> result = new ApiResponse<PromoCodeDTO>();
+            try
+            {
+                var promoCodeResult = await unitOfWork.PromoCodeManager.GetAsync(a => a.Code == model.PromoCode);
+
+                PromoCode promoCode = promoCodeResult.FirstOrDefault();
+
+                if (promoCode != null)
+                {
+                    if (promoCode.ExpiryDate > DateTime.Now)
+                    {
+
+                        if (promoCode.UsageCount > 0)
+                        {
+                            promoCode.UsageCount--;
+
+                            var updatePromoCodeResult = await unitOfWork.PromoCodeManager.UpdateAsync(promoCode);
+
+                            await unitOfWork.SaveChangesAsync();
+
+                            if (updatePromoCodeResult == true)
+                            {
+                                result.Succeeded = true;
+                                result.Data = mapper.Map<PromoCodeDTO>(promoCode);
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Errors.Add("Error applying promo code !");
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Promo code expired !");
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("Promo code expired !");
+                        return result;
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("Unable to find the specified promo code !");
+                    return result;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+        }
+
 
     }
 }

@@ -9,5 +9,6 @@ namespace TopSaloon.DTOs.Models
         public int BarberQueueId { get; set; }
         public int CustomerId { get; set; }
         public virtual List<OrderServiceToAddDTO> OrderServices { get; set; }
+        public float  DiscountRate { get; set; }
     }
 }
