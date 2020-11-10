@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,12 @@ namespace TopSaloon.Core.Managers
             AdministratorDTO adminDTO = new AdministratorDTO();
             adminDTO.Id = admin.Id;
             adminDTO.UserId = admin.UserId;
+
+           
+            adminDTO.Role = admin.Role;
+            adminDTO.ShopId = admin.ShopId;
+
+          
             return adminDTO;
         }
         public Administrator GetAdminByID(int id)
