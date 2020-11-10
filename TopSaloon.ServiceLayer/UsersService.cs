@@ -597,6 +597,7 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<AdminCreationModel> result = new ApiResponse<AdminCreationModel>();
             try
             {
+                
                 var getadmin = await unitOfWork.AdministratorsManager.GetAsync(b => b.Role == RoleName);
 
                 var getfirstadmin = getadmin.FirstOrDefault();
