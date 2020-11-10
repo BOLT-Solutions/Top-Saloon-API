@@ -347,6 +347,8 @@ namespace TopSaloon.ServiceLayer
                         completeOrder.OrderTotalAmount += order.OrderServices[i].Price;
                     }
 
+                    completeOrder.OrderTotalAmount = completeOrder.OrderTotalAmount - (completeOrder.OrderTotalAmount * (order.DiscountRate / 100));
+
                     completeOrder.BarberId = barber.Id;
                     completeOrder.OrderDateTime = order.OrderDate;
                     completeOrder.OrderFinishTime = order.FinishTime;

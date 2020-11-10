@@ -17,6 +17,7 @@ namespace TopSaloon.DTOs.Models
         public int? WaitingTimeInMinutes { get; set; }
         public int? TotalServicesWaitingTime { get; set; }
         public int? OrderIdentifier { get; set; }
+        public float? DiscountRate { get; set; }
         public string Status { get; set; }
         public DateTime? OrderDate { get; set; }
         public int BarberQueueId { get; set; }
