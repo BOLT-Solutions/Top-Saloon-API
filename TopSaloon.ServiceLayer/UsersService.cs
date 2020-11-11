@@ -102,58 +102,144 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public async Task<ApiResponse<bool>> CreateAdmin(AdminCreationModel model)
+        public async Task<ApiResponse<bool>> CreateAdminAccount(AdminCreationModel model)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
             try
             {
-                ApplicationUser user = new ApplicationUser
+
+                var shopResult = await unitOfWork.ShopsManager.GetAsync();
+
+                Shop shop = shopResult.FirstOrDefault();
+
+                if(shop != null)
                 {
-                    FirstName = model.FirstName,
-                    LastName = model.LastName,
-                    Email = model.Email,
-                    PhoneNumber = model.PhoneNumber,
-                    UserName = model.FirstName + model.LastName
-                };
-
-                var res = await unitOfWork.UserManager.CreateAsync(user, model.Password);
-
-
-                await unitOfWork.SaveChangesAsync();
-
-                if (res.Succeeded)
-                {
-
-                    var roleresult = await unitOfWork.UserManager.AddToRoleAsync(user, "Administrator");
-
-                    Administrator adminToCreate = new Administrator();
-                    adminToCreate.UserId = user.Id;
-                    adminToCreate.ShopId = 1;
-                    var admin = await unitOfWork.AdministratorsManager.CreateAsync(adminToCreate);
-
-                    var res2 = await unitOfWork.SaveChangesAsync();
-
-                    if (res2 == true)
+                    ApplicationUser user = new ApplicationUser
                     {
-                        result.Data = true;
-                        result.Succeeded = true;
-                        return result;
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Email,
+                        PhoneNumber = model.PhoneNumber,
+                        UserName = model.FirstName + model.LastName
+                    };
+
+                    var res = await unitOfWork.UserManager.CreateAsync(user, model.Password);
+
+                    await unitOfWork.SaveChangesAsync();
+
+                    if (res.Succeeded)
+                    {
+
+                        var roleresult = await unitOfWork.UserManager.AddToRoleAsync(user, "Administrator");
+
+                        Administrator adminToCreate = new Administrator();
+                        adminToCreate.UserId = user.Id;
+                        adminToCreate.ShopId = shop.Id;
+                        adminToCreate.Role = "Administrator";
+
+                        var admin = await unitOfWork.AdministratorsManager.CreateAsync(adminToCreate);
+
+                        var res2 = await unitOfWork.SaveChangesAsync();
+
+                        if (res2 == true)
+                        {
+                            result.Data = true;
+                            result.Succeeded = true;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Failed To Create Adminstrator");
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
                     }
                     else
                     {
                         result.Succeeded = false;
-                        result.Errors.Add("Failed To Create Adminstrator");
+                        foreach (var error in res.Errors)
+                        {
+                            result.Errors.Add(error.Description);
+                        }
                         result.ErrorType = ErrorType.LogicalError;
                         return result;
-                    }
+                    }    
                 }
-                result.Succeeded = false;
-                foreach (var error in res.Errors)
+                else
                 {
-                    result.Errors.Add(error.Description);
+
+                    Shop newShop = new Shop();
+
+                    newShop.Address = "Mars";
+
+                    var CreateShopResult = await unitOfWork.ShopsManager.CreateAsync(newShop);
+
+                    await unitOfWork.SaveChangesAsync();
+
+                    if(CreateShopResult != null)
+                    {
+                        ApplicationUser user = new ApplicationUser
+                        {
+                            FirstName = model.FirstName,
+                            LastName = model.LastName,
+                            Email = model.Email,
+                            PhoneNumber = model.PhoneNumber,
+                            UserName = model.FirstName + model.LastName
+                        };
+
+                        var res = await unitOfWork.UserManager.CreateAsync(user, model.Password);
+
+                        await unitOfWork.SaveChangesAsync();
+
+                        if (res.Succeeded)
+                        {
+
+                            var roleresult = await unitOfWork.UserManager.AddToRoleAsync(user, "Administrator");
+
+                            Administrator adminToCreate = new Administrator();
+                            adminToCreate.UserId = user.Id;
+                            adminToCreate.ShopId = CreateShopResult.Id;
+                            adminToCreate.Role = "Administrator";
+
+                            var admin = await unitOfWork.AdministratorsManager.CreateAsync(adminToCreate);
+
+                            var res2 = await unitOfWork.SaveChangesAsync();
+
+                            if (res2 == true)
+                            {
+                                result.Data = true;
+                                result.Succeeded = true;
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Errors.Add("Failed To Create Adminstrator");
+                                result.ErrorType = ErrorType.LogicalError;
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            foreach (var error in res.Errors)
+                            {
+                                result.Errors.Add(error.Description);
+                            }
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("Failed to create shop !");
+                        result.ErrorType = ErrorType.SystemError;
+                        return result;
+                    }
+
                 }
-                result.ErrorType = ErrorType.LogicalError;
-                return result;
             }
             catch (Exception ex)
             {
@@ -163,6 +249,154 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
+        public async Task<ApiResponse<bool>> CreateSuperAdminAccount(AdminCreationModel model)
+        {
+            ApiResponse<bool> result = new ApiResponse<bool>();
+            try
+            {
+
+                var shopResult = await unitOfWork.ShopsManager.GetAsync();
+
+                Shop shop = shopResult.FirstOrDefault();
+
+                if (shop != null)
+                {
+                    ApplicationUser user = new ApplicationUser
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Email,
+                        PhoneNumber = model.PhoneNumber,
+                        UserName = model.FirstName + model.LastName
+                    };
+
+                    var res = await unitOfWork.UserManager.CreateAsync(user, model.Password);
+
+                    await unitOfWork.SaveChangesAsync();
+
+                    if (res.Succeeded)
+                    {
+
+                        var roleresult = await unitOfWork.UserManager.AddToRoleAsync(user, "SuperAdmin");
+
+                        Administrator adminToCreate = new Administrator();
+                        adminToCreate.UserId = user.Id;
+                        adminToCreate.ShopId = shop.Id;
+                        adminToCreate.Role = "SuperAdmin";
+
+                        var admin = await unitOfWork.AdministratorsManager.CreateAsync(adminToCreate);
+
+                        var res2 = await unitOfWork.SaveChangesAsync();
+
+                        if (res2 == true)
+                        {
+                            result.Data = true;
+                            result.Succeeded = true;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Failed To Create Super Adminstrator");
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        foreach (var error in res.Errors)
+                        {
+                            result.Errors.Add(error.Description);
+                        }
+                        result.ErrorType = ErrorType.LogicalError;
+                        return result;
+                    }
+                }
+                else
+                {
+
+                    Shop newShop = new Shop();
+
+                    newShop.Address = "Mars";
+
+                    var CreateShopResult = await unitOfWork.ShopsManager.CreateAsync(newShop);
+
+                    await unitOfWork.SaveChangesAsync();
+
+                    if (CreateShopResult != null)
+                    {
+                        ApplicationUser user = new ApplicationUser
+                        {
+                            FirstName = model.FirstName,
+                            LastName = model.LastName,
+                            Email = model.Email,
+                            PhoneNumber = model.PhoneNumber,
+                            UserName = model.FirstName + model.LastName
+                        };
+
+                        var res = await unitOfWork.UserManager.CreateAsync(user, model.Password);
+
+                        await unitOfWork.SaveChangesAsync();
+
+                        if (res.Succeeded)
+                        {
+
+                            var roleresult = await unitOfWork.UserManager.AddToRoleAsync(user, "SuperAdministrator");
+
+                            Administrator adminToCreate = new Administrator();
+                            adminToCreate.UserId = user.Id;
+                            adminToCreate.ShopId = CreateShopResult.Id;
+                            adminToCreate.Role = "SuperAdministrator";
+
+                            var admin = await unitOfWork.AdministratorsManager.CreateAsync(adminToCreate);
+
+                            var res2 = await unitOfWork.SaveChangesAsync();
+
+                            if (res2 == true)
+                            {
+                                result.Data = true;
+                                result.Succeeded = true;
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Errors.Add("Failed To Create Super Adminstrator");
+                                result.ErrorType = ErrorType.LogicalError;
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            foreach (var error in res.Errors)
+                            {
+                                result.Errors.Add(error.Description);
+                            }
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("Failed to create shop !");
+                        result.ErrorType = ErrorType.SystemError;
+                        return result;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                result.ErrorType = ErrorType.SystemError;
+                return result;
+            }
+        }
+
         public async Task<ApiResponse<bool>> DeleteAdmin(string AdminId)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
@@ -220,15 +454,29 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 var user = await unitOfWork.UserManager.FindByEmailAsync(model.Email);
+
                 if (user != null)
                 {
                     bool res = await unitOfWork.UserManager.CheckPasswordAsync(user, model.Password);
+
                     if (res)
                     {
                         var admin = unitOfWork.AdministratorsManager.GetAdminByUserId(user.Id);
-                        result.Data = admin;
-                        result.Succeeded = true;
-                        return result;
+
+                        if(admin != null)
+                        {
+
+                            result.Data = admin;
+                            result.Succeeded = true;
+                            return result;
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Cannot find an administrator with the specified id !");
+                            result.ErrorType = ErrorType.LogicalError;
+                            return result;
+                        }
                     }
                     else
                     {
@@ -237,7 +485,6 @@ namespace TopSaloon.ServiceLayer
                         result.ErrorType = ErrorType.LogicalError;
                         return result;
                     }
-
                 }
                 else
                 {
@@ -345,6 +592,63 @@ namespace TopSaloon.ServiceLayer
             }
 
         }
+        public async Task<ApiResponse<AdminCreationModel>> getSubAdminByRoleName(string RoleName)
+        {
+            ApiResponse<AdminCreationModel> result = new ApiResponse<AdminCreationModel>();
+            try
+            {
+                
+                var getadmin = await unitOfWork.AdministratorsManager.GetAsync(b => b.Role == RoleName);
+
+                var getfirstadmin = getadmin.FirstOrDefault();
+
+                if(getfirstadmin !=null)
+                {
+                    var userData = await unitOfWork.UserManager.FindByIdAsync(getfirstadmin.UserId);
+                    if (userData != null)
+                    {
+                        AdministratorDTO adminDto = new AdministratorDTO();
+                        adminDto.Id = getfirstadmin.Id;
+                        adminDto.UserId = getfirstadmin.UserId;
+                        adminDto.ShopId = getfirstadmin.ShopId;
+                        adminDto.Role = getfirstadmin.Role;
+
+
+                        AdminCreationModel adminModel = new AdminCreationModel();
+                        adminModel.id = getfirstadmin.Id;
+                        adminModel.FirstName = userData.FirstName;
+                        adminModel.LastName = userData.LastName;
+                        adminModel.Email = userData.Email;
+                        adminModel.PhoneNumber = userData.PhoneNumber;
+                        
+
+                        result.Data = adminModel;
+                        result.Succeeded = true;
+                        return result;
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("User not found");
+                        return result;
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("cannot get user ");
+                    return result;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+
+        }
         public async Task<ApiResponse<bool>> EditAdminById(editAdministrator adminDto)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
@@ -432,6 +736,8 @@ namespace TopSaloon.ServiceLayer
             }
         }
 
+       
+
         //public async Task<ApiResponse<bool>> EditAdminById(editAdministrator adminDto)
         //{
         //    ApiResponse<bool> result = new ApiResponse<bool>();
@@ -511,6 +817,6 @@ namespace TopSaloon.ServiceLayer
         //}
 
     }
- }
+}
 
 
