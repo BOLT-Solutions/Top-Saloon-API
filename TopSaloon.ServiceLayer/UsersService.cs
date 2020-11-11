@@ -615,12 +615,12 @@ namespace TopSaloon.ServiceLayer
 
 
                         AdminCreationModel adminModel = new AdminCreationModel();
-
+                        adminModel.id = getfirstadmin.Id;
                         adminModel.FirstName = userData.FirstName;
                         adminModel.LastName = userData.LastName;
                         adminModel.Email = userData.Email;
                         adminModel.PhoneNumber = userData.PhoneNumber;
-
+                        
 
                         result.Data = adminModel;
                         result.Succeeded = true;
@@ -736,6 +736,8 @@ namespace TopSaloon.ServiceLayer
             }
         }
 
+       
+
         //public async Task<ApiResponse<bool>> EditAdminById(editAdministrator adminDto)
         //{
         //    ApiResponse<bool> result = new ApiResponse<bool>();
@@ -815,6 +817,6 @@ namespace TopSaloon.ServiceLayer
         //}
 
     }
- }
+}
 
 
