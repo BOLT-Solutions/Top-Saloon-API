@@ -36,13 +36,11 @@ namespace TopSaloon.API.Controllers
         {
             return await AddItemResponseHandler(async () => await service.CreateAdminAccount(model));
         }
-
         [HttpPost("CreateSuperAdminAccount")]
-        public async Task<IActionResult> CreateSuperAdminAccount(AdminCreationModel model)
+        public async Task<IActionResult> CreateSuperAdmin(AdminCreationModel model)
         {
             return await AddItemResponseHandler(async () => await service.CreateSuperAdminAccount(model));
         }
-
         [HttpPost("DeleteAdmin")]
         public async Task<IActionResult> DeleteAdmin(string adminId)
         {
@@ -66,11 +64,18 @@ namespace TopSaloon.API.Controllers
             return await GetResponseHandler(async () => await service.getAdminById(adminId));
         }
 
+        [HttpGet("getSubAdministratorByRoleName/{RoleName}")]
+        public async Task<IActionResult> GetsubAdminByRoleName(string RoleName)
+        {
+            return await GetResponseHandler(async () => await service.getSubAdminByRoleName(RoleName));
+        }
+
         [HttpPost("editAdministratorbyId")]
         public async Task<IActionResult> EditAdminByid( editAdministrator adminCreationModel)
         {
             return await AddItemResponseHandler(async () => await service.EditAdminById(adminCreationModel));
         }
+       
 
     }
 }
