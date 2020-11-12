@@ -54,6 +54,7 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    BarberId = table.Column<int>(nullable: false),
                     LoginDateTime = table.Column<DateTime>(nullable: true),
                     logoutDateTime = table.Column<DateTime>(nullable: true),
                     NumberOfCompleteOrders = table.Column<int>(nullable: true)
@@ -72,6 +73,7 @@ namespace TopSaloon.DAL.Migrations
                     Name = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
                     Email = table.Column<string>(nullable: true),
+                    UniqueCode = table.Column<string>(nullable: true),
                     LastBarberId = table.Column<int>(nullable: true),
                     LastVisitDate = table.Column<DateTime>(nullable: true),
                     TotalNumberOfVisits = table.Column<int>(nullable: true)
@@ -99,14 +101,47 @@ namespace TopSaloon.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "GuestNumber",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CurrentGuestNumber = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GuestNumber", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PromoCodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(nullable: true),
+                    DiscountRate = table.Column<float>(nullable: false),
+                    CreationDate = table.Column<DateTime>(nullable: false),
+                    ExpiryDate = table.Column<DateTime>(nullable: false),
+                    UsageCount = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PromoCodes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Services",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(nullable: true),
+                    NameAR = table.Column<string>(nullable: true),
+                    NameEN = table.Column<string>(nullable: true),
                     Price = table.Column<float>(nullable: true),
-                    Time = table.Column<int>(nullable: true)
+                    Time = table.Column<int>(nullable: true),
+                    AdminPath = table.Column<string>(nullable: true),
+                    UserPath = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -253,12 +288,17 @@ namespace TopSaloon.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BarberId = table.Column<int>(nullable: false),
                     OrderTotalAmount = table.Column<float>(nullable: true),
+                    TotalTimeSpent = table.Column<float>(nullable: true),
                     CustomerWaitingTimeInMinutes = table.Column<int>(nullable: true),
                     Status = table.Column<string>(nullable: true),
                     OrderServicesList = table.Column<string>(nullable: true),
                     OrderDateTime = table.Column<DateTime>(nullable: true),
                     OrderFinishTime = table.Column<DateTime>(nullable: true),
-                    CustomerId = table.Column<int>(nullable: true)
+                    CustomerNameAR = table.Column<string>(nullable: true),
+                    CustomerNameEN = table.Column<string>(nullable: true),
+                    BarberNameAR = table.Column<string>(nullable: true),
+                    BarberNameEN = table.Column<string>(nullable: true),
+                    CustomerId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -268,7 +308,7 @@ namespace TopSaloon.DAL.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -277,7 +317,8 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Question = table.Column<string>(nullable: true),
+                    QuestionAR = table.Column<string>(nullable: true),
+                    QuestionEN = table.Column<string>(nullable: true),
                     ServiceId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -298,7 +339,8 @@ namespace TopSaloon.DAL.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(nullable: true),
-                    ShopId = table.Column<int>(nullable: false)
+                    ShopId = table.Column<int>(nullable: false),
+                    Role = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -317,7 +359,8 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(nullable: true),
+                    NameAR = table.Column<string>(nullable: true),
+                    NameEN = table.Column<string>(nullable: true),
                     Status = table.Column<string>(nullable: true),
                     NumberOfCustomersHandled = table.Column<int>(nullable: true),
                     ShopId = table.Column<int>(nullable: false)
@@ -361,7 +404,8 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Path = table.Column<string>(nullable: true),
+                    AdminPath = table.Column<string>(nullable: true),
+                    UserPath = table.Column<string>(nullable: true),
                     BarberId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -382,7 +426,8 @@ namespace TopSaloon.DAL.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     QueueStatus = table.Column<string>(nullable: true),
-                    BarberId = table.Column<int>(nullable: false)
+                    BarberId = table.Column<int>(nullable: false),
+                    QueueWaitingTime = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -401,7 +446,8 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Question = table.Column<string>(nullable: true),
+                    QuestionAR = table.Column<string>(nullable: true),
+                    QuestionEN = table.Column<string>(nullable: true),
                     Rating = table.Column<int>(nullable: true),
                     OrderFeedbackId = table.Column<int>(nullable: false)
                 },
@@ -422,11 +468,15 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerId = table.Column<int>(nullable: false),
+                    CustomerName = table.Column<string>(nullable: true),
+                    CustomerMobile = table.Column<string>(nullable: true),
                     OrderTotal = table.Column<float>(nullable: true),
                     FinishTime = table.Column<DateTime>(nullable: true),
                     WaitingTimeInMinutes = table.Column<int>(nullable: true),
                     TotalServicesWaitingTime = table.Column<int>(nullable: true),
                     OrderIdentifier = table.Column<int>(nullable: true),
+                    DiscountRate = table.Column<float>(nullable: true),
                     Status = table.Column<string>(nullable: true),
                     OrderDate = table.Column<DateTime>(nullable: true),
                     BarberQueueId = table.Column<int>(nullable: false)
@@ -448,7 +498,9 @@ namespace TopSaloon.DAL.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(nullable: true),
+                    ServiceId = table.Column<int>(nullable: false),
+                    NameAR = table.Column<string>(nullable: true),
+                    NameEN = table.Column<string>(nullable: true),
                     Price = table.Column<float>(nullable: true),
                     Time = table.Column<int>(nullable: true),
                     IsConfirmed = table.Column<bool>(nullable: true),
@@ -588,10 +640,16 @@ namespace TopSaloon.DAL.Migrations
                 name: "DailyReports");
 
             migrationBuilder.DropTable(
+                name: "GuestNumber");
+
+            migrationBuilder.DropTable(
                 name: "OrderFeedbackQuestions");
 
             migrationBuilder.DropTable(
                 name: "OrderServices");
+
+            migrationBuilder.DropTable(
+                name: "PromoCodes");
 
             migrationBuilder.DropTable(
                 name: "ServiceFeedBackQuestions");

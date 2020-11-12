@@ -10,7 +10,7 @@ using TopSaloon.DAL;
 namespace TopSaloon.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200810153400_Initial")]
+    [Migration("20201111213257_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -159,6 +159,9 @@ namespace TopSaloon.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<string>("Role")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
 
@@ -250,7 +253,10 @@ namespace TopSaloon.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameEN")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("NumberOfCustomersHandled")
@@ -276,6 +282,9 @@ namespace TopSaloon.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("BarberId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LoginDateTime")
                         .HasColumnType("datetime2");
 
@@ -297,10 +306,13 @@ namespace TopSaloon.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<string>("AdminPath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("BarberId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Path")
+                    b.Property<string>("UserPath")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -324,6 +336,9 @@ namespace TopSaloon.DAL.Migrations
                     b.Property<string>("QueueStatus")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("QueueWaitingTime")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BarberId")
@@ -342,8 +357,20 @@ namespace TopSaloon.DAL.Migrations
                     b.Property<int>("BarberId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CustomerId")
+                    b.Property<string>("BarberNameAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BarberNameEN")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CustomerId")
                         .HasColumnType("int");
+
+                    b.Property<string>("CustomerNameAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerNameEN")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("CustomerWaitingTimeInMinutes")
                         .HasColumnType("int");
@@ -362,6 +389,9 @@ namespace TopSaloon.DAL.Migrations
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<float?>("TotalTimeSpent")
+                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
@@ -395,6 +425,9 @@ namespace TopSaloon.DAL.Migrations
                     b.Property<int?>("TotalNumberOfVisits")
                         .HasColumnType("int");
 
+                    b.Property<string>("UniqueCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
@@ -427,6 +460,21 @@ namespace TopSaloon.DAL.Migrations
                     b.ToTable("DailyReports");
                 });
 
+            modelBuilder.Entity("TopSaloon.Entities.Models.GuestNumber", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("CurrentGuestNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GuestNumber");
+                });
+
             modelBuilder.Entity("TopSaloon.Entities.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -436,6 +484,18 @@ namespace TopSaloon.DAL.Migrations
 
                     b.Property<int>("BarberQueueId")
                         .HasColumnType("int");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomerMobile")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float?>("DiscountRate")
+                        .HasColumnType("real");
 
                     b.Property<DateTime?>("FinishTime")
                         .HasColumnType("datetime2");
@@ -502,7 +562,10 @@ namespace TopSaloon.DAL.Migrations
                     b.Property<int>("OrderFeedbackId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Question")
+                    b.Property<string>("QuestionAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QuestionEN")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Rating")
@@ -525,7 +588,10 @@ namespace TopSaloon.DAL.Migrations
                     b.Property<bool?>("IsConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameEN")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OrderId")
@@ -533,6 +599,9 @@ namespace TopSaloon.DAL.Migrations
 
                     b.Property<float?>("Price")
                         .HasColumnType("real");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("Time")
                         .HasColumnType("int");
@@ -542,6 +611,33 @@ namespace TopSaloon.DAL.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderServices");
+                });
+
+            modelBuilder.Entity("TopSaloon.Entities.Models.PromoCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<float>("DiscountRate")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsageCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PromoCodes");
                 });
 
             modelBuilder.Entity("TopSaloon.Entities.Models.SMS", b =>
@@ -566,7 +662,13 @@ namespace TopSaloon.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Name")
+                    b.Property<string>("AdminPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameEN")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<float?>("Price")
@@ -574,6 +676,9 @@ namespace TopSaloon.DAL.Migrations
 
                     b.Property<int?>("Time")
                         .HasColumnType("int");
+
+                    b.Property<string>("UserPath")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -587,7 +692,10 @@ namespace TopSaloon.DAL.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Question")
+                    b.Property<string>("QuestionAR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QuestionEN")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ServiceId")
@@ -706,7 +814,9 @@ namespace TopSaloon.DAL.Migrations
                 {
                     b.HasOne("TopSaloon.Entities.Models.Customer", "Customer")
                         .WithMany("CompleteOrders")
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TopSaloon.Entities.Models.Order", b =>
