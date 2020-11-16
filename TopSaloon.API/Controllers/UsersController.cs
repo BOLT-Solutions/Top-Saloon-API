@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,17 +48,20 @@ namespace TopSaloon.API.Controllers
             return await AddItemResponseHandler(async () => await service.DeleteAdmin(adminId));
         }
 
+   
         [HttpPost("AdminLogin")]
         public async Task<IActionResult> AdminLoginAsync(AdminLoginModel model)
         {
             return await GetResponseHandler(async () => await service.LoginAsync(model));
         }
+
         //GetUserDailyEarningPerTime
         [HttpPost("GetUserDailyEarningPerTime")]
         public async Task<IActionResult> GetUserDailyEarningPerTime(DateTime Start, DateTime End)
         {
             return await GetResponseHandler(async () => await service.GetUserDailyEarningPerTime(Start , End));
         }
+
         [HttpGet("getAdministratorbyId/{adminId}")]
         public async Task<IActionResult> GetAdminByid(int adminId)
         {
