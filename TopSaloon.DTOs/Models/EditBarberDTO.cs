@@ -12,5 +12,6 @@ namespace TopSaloon.DTOs.Models
         public string status { get; set; }
         public string BarberProfilePhotoPathAdmin { get; set; }
         public string BarberProfilePhotoPathUser { get; set; }
+        public string BarberFingerprintId { get; set; }
     }
 }
