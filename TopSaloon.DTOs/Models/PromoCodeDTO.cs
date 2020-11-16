@@ -11,6 +11,7 @@ namespace TopSaloon.DTOs.Models
         public float DiscountRate { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime ExpiryDate { get; set; }
+        public int OriginalUsageCount { get; set; }
         public int UsageCount { get; set; }
 
     }

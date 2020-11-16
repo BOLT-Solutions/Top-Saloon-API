@@ -41,6 +41,7 @@ namespace TopSaloon.ServiceLayer
                 PromoCode promoCodeToCreate = new PromoCode();
                 promoCodeToCreate.CreationDate = DateTime.Now;
                 promoCodeToCreate.ExpiryDate = model.ExpiryDate;
+                promoCodeToCreate.OriginalUsageCount = model.UsageCount;
                 promoCodeToCreate.UsageCount = model.UsageCount;
                 promoCodeToCreate.DiscountRate = model.DiscountRate;
 
@@ -48,6 +49,13 @@ namespace TopSaloon.ServiceLayer
                 {
                     result.Succeeded = false;
                     result.Errors.Add("Error creating promo code , discount rate is more than 100% !");
+                    return result;
+                }
+
+                if(model.ExpiryDate < DateTime.Now)
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("Please enter a valid expiry date !");
                     return result;
                 }
 
@@ -150,6 +158,7 @@ namespace TopSaloon.ServiceLayer
                 {
 
                     promoCodeResult.DiscountRate = model.DiscountRate;
+                    promoCodeResult.OriginalUsageCount = model.UsageCount;
                     promoCodeResult.UsageCount = model.UsageCount;
                     promoCodeResult.ExpiryDate = model.ExpiryDate;
 
