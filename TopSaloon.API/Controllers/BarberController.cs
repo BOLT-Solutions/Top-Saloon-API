@@ -73,7 +73,7 @@ namespace TopSaloon.API.Controllers
             return await AddItemResponseHandler(async () => await service.ChangeBarberStatus(id));
         }
 
-        [HttpPost("SignInBarber/{id}")]
+        [HttpPost("SignInBarber")]
         public async Task<IActionResult> SignInBarber(BarberLoginRequestAdminDTO request)
         {
             return await AddItemResponseHandler(async () => await service.SignInBarberAdmin(request));
