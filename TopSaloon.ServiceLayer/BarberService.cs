@@ -105,7 +105,7 @@ namespace TopSaloon.ServiceLayer
             try
             {
 
-                var barberPrintResult = await unitOfWork.BarbersManager.GetAsync(a => a.BarberFingerPrintId == model.BarberFigerprintId);
+                var barberPrintResult = await unitOfWork.BarbersManager.GetAsync(a => a.BarberFingerPrintId == model.BarberFingerprintId);
 
                 var barber = barberPrintResult.FirstOrDefault();
 
@@ -119,7 +119,7 @@ namespace TopSaloon.ServiceLayer
                     barberToAdd.NameEN = model.NameEN;
                     barberToAdd.ShopId = shop.Id;
                     barberToAdd.NumberOfCustomersHandled = 0;
-                    barberToAdd.BarberFingerPrintId = model.BarberFigerprintId;
+                    barberToAdd.BarberFingerPrintId = model.BarberFingerprintId;
                     barberToAdd.Status = "Unavailable";
                     var barberResult = await unitOfWork.BarbersManager.CreateAsync(barberToAdd);
 
@@ -222,32 +222,50 @@ namespace TopSaloon.ServiceLayer
                     {
                         BarberToEdit.NameAR = model.NameAR;
                         BarberToEdit.NameEN = model.NameEN;
+                        BarberToEdit.BarberFingerPrintId = model.BarberFingerprintId;
 
-                        barberProfilePhotoToEdit.AdminPath = model.BarberProfilePhotoPathAdmin;
-                        barberProfilePhotoToEdit.UserPath = model.BarberProfilePhotoPathUser;
+                        var barberPrintResult = await unitOfWork.BarbersManager.GetAsync(a => a.BarberFingerPrintId == model.BarberFingerprintId);
 
-                        var barberResult = await unitOfWork.BarbersManager.UpdateAsync(BarberToEdit);
+                        var barber = barberPrintResult.FirstOrDefault();
 
-                        var barberProfilePhotoResult = await unitOfWork.BarberProfilePhotosManager.UpdateAsync(barberProfilePhotoToEdit);
-
-                        
-
-                        if(barberResult == true && barberProfilePhotoResult == true)
+                        if (barber !=null)
                         {
-
-                            await unitOfWork.SaveChangesAsync();
-
-                            result.Succeeded = true;
-                            result.Data = true;
+                           result.Succeeded = false;
+                            result.Errors.Add("Finger Print Id is used ! ");
                             return result;
-
                         }
                         else
                         {
-                            result.Succeeded = false;
-                            result.Errors.Add("Failed to update barber information ! ");
-                            return result;
+                            barberProfilePhotoToEdit.AdminPath = model.BarberProfilePhotoPathAdmin;
+                            barberProfilePhotoToEdit.UserPath = model.BarberProfilePhotoPathUser;
+
+
+
+                            var barberResult = await unitOfWork.BarbersManager.UpdateAsync(BarberToEdit);
+
+                            var barberProfilePhotoResult = await unitOfWork.BarberProfilePhotosManager.UpdateAsync(barberProfilePhotoToEdit);
+
+
+
+                            if (barberResult == true && barberProfilePhotoResult == true)
+                            {
+
+                                await unitOfWork.SaveChangesAsync();
+
+                                result.Succeeded = true;
+                                result.Data = true;
+                                return result;
+
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Errors.Add("Failed to update barber information ! ");
+                                return result;
+                            }
                         }
+
+                       
                     }
                     else
                     {
