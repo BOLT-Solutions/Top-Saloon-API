@@ -35,12 +35,12 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC20\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=A_12345;"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC15\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssword;"));
 
-          ////  services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
-          //  {
-          //      builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
-          //  }));
+          //  services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
+          //{
+          //    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
+          //}));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -93,6 +93,15 @@ namespace TopSaloon.API
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
+          
+
+            app.UseCors(policy => policy
+           .AllowAnyHeader()
+           .AllowAnyMethod()
+           .WithOrigins("http://localhost:4200", "http://localhost:4201", "http://localhost:4471", "http://localhost:4472")
+           .AllowCredentials());
+
+
             //app.UseCors(policy => policy
             //   .WithOrigins("http://adminsalon.boltsmartsolutions.com",
             //                "https://adminsalon.boltsmartsolutions.com",
@@ -103,16 +112,11 @@ namespace TopSaloon.API
             //   .AllowCredentials()
             // );
 
-            app.UseCors(policy => policy
-           .AllowAnyHeader()
-           .AllowAnyMethod()
-           .WithOrigins("http://localhost:4200", "http://localhost:4201", "http://localhost:4471", "http://localhost:4472")
-           .AllowCredentials());
 
             app.UseRouting();
 
             //Remove when publishing .
-            app.UseAuthorization();
+           // app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

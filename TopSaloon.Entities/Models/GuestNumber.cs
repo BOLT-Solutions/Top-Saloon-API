@@ -7,6 +7,5 @@ namespace TopSaloon.Entities.Models
     {
         public int Id { get; set; }
         public int CurrentGuestNumber { get; set; }
-
     }
 }

@@ -7,11 +7,9 @@ namespace TopSaloon.Entities.Models
      public  class BarberLogin
     {
         public int Id { get; set; }
-
         public int BarberId { get; set; }
-
         public DateTime? LoginDateTime { get; set; }
         public DateTime? logoutDateTime { get; set; }
-        public int? NumberOfCompleteOrders { get; set; }
+
     }
 }

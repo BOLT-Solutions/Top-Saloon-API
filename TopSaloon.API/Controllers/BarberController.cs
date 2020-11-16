@@ -73,17 +73,17 @@ namespace TopSaloon.API.Controllers
             return await AddItemResponseHandler(async () => await service.ChangeBarberStatus(id));
         }
 
-        [HttpGet("SignInBarber/{id}")]
-        public async Task<IActionResult> SignInBarber(int id)
+        [HttpPost("SignInBarber/{id}")]
+        public async Task<IActionResult> SignInBarber(BarberLoginRequestAdminDTO request)
         {
-            return await AddItemResponseHandler(async () => await service.SignInBarber(id));
+            return await AddItemResponseHandler(async () => await service.SignInBarberAdmin(request));
         }
 
 
         [HttpGet("SignOutBarber/{id}")]
-        public async Task<IActionResult> SignOutBarber(int id)
+        public async Task<IActionResult> SignOutBarber(BarberLogoutRequestAdminDTO request)
         {
-            return await AddItemResponseHandler(async () => await service.SignOutBarber(id));
+            return await EditItemResponseHandler(async () => await service.SignOutBarberAdmin(request));
         }
 
 

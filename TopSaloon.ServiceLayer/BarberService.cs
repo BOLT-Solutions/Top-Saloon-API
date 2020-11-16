@@ -104,79 +104,94 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<BarberDTO> result = new ApiResponse<BarberDTO>();
             try
             {
-                var shops = await unitOfWork.ShopsManager.GetAsync();
 
-                Shop shop = shops.FirstOrDefault();
-                Barber barberToAdd = new Barber();
-                barberToAdd.NameAR = model.NameAR;
-                barberToAdd.NameEN = model.NameEN;
-                barberToAdd.ShopId = shop.Id;
-                barberToAdd.NumberOfCustomersHandled = 0;
-                barberToAdd.Status = "Unavailable";
-                var barberResult = await unitOfWork.BarbersManager.CreateAsync(barberToAdd);
+                var barberPrintResult = await unitOfWork.BarbersManager.GetAsync(a => a.BarberFingerPrintId == model.BarberFigerprintId);
 
-                await unitOfWork.SaveChangesAsync();
+                var barber = barberPrintResult.FirstOrDefault();
 
-                if(barberResult != null)
+                if (barber == null)
                 {
-                    BarberProfilePhoto barberProfilePhoto = new BarberProfilePhoto();
-                    barberProfilePhoto.BarberId = barberResult.Id;
-                    barberProfilePhoto.AdminPath = model.BarberProfilePhotoPathAdmin;
-                    barberProfilePhoto.UserPath = model.BarberProfilePhotoPathUser;
+                    var shops = await unitOfWork.ShopsManager.GetAsync();
 
-                    var barberProfilePhotoResult = await unitOfWork.BarberProfilePhotosManager.CreateAsync(barberProfilePhoto);
+                    Shop shop = shops.FirstOrDefault();
+                    Barber barberToAdd = new Barber();
+                    barberToAdd.NameAR = model.NameAR;
+                    barberToAdd.NameEN = model.NameEN;
+                    barberToAdd.ShopId = shop.Id;
+                    barberToAdd.NumberOfCustomersHandled = 0;
+                    barberToAdd.BarberFingerPrintId = model.BarberFigerprintId;
+                    barberToAdd.Status = "Unavailable";
+                    var barberResult = await unitOfWork.BarbersManager.CreateAsync(barberToAdd);
 
                     await unitOfWork.SaveChangesAsync();
 
-                    if (barberProfilePhotoResult != null)
+                    if (barberResult != null)
                     {
-                        BarberQueue barberQueue = new BarberQueue();
+                        BarberProfilePhoto barberProfilePhoto = new BarberProfilePhoto();
+                        barberProfilePhoto.BarberId = barberResult.Id;
+                        barberProfilePhoto.AdminPath = model.BarberProfilePhotoPathAdmin;
+                        barberProfilePhoto.UserPath = model.BarberProfilePhotoPathUser;
 
-                        barberQueue.BarberId = barberResult.Id;
-
-                        barberQueue.QueueStatus = "idle";
-
-                        barberQueue.QueueWaitingTime = 0;
-
-                        var barberQueueResult = await unitOfWork.BarbersQueuesManager.CreateAsync(barberQueue);
+                        var barberProfilePhotoResult = await unitOfWork.BarberProfilePhotosManager.CreateAsync(barberProfilePhoto);
 
                         await unitOfWork.SaveChangesAsync();
 
-                        if (barberQueueResult != null)
+                        if (barberProfilePhotoResult != null)
                         {
+                            BarberQueue barberQueue = new BarberQueue();
 
-                            var barbers = await unitOfWork.BarbersManager.GetAsync(b => b.Id == barberResult.Id, includeProperties:"BarberQueue,BarberProfilePhoto");
+                            barberQueue.BarberId = barberResult.Id;
 
-                            Barber barberToReturn = barbers.FirstOrDefault();
+                            barberQueue.QueueStatus = "idle";
 
-                            if(barberToReturn != null)
+                            barberQueue.QueueWaitingTime = 0;
+
+                            var barberQueueResult = await unitOfWork.BarbersQueuesManager.CreateAsync(barberQueue);
+
+                            await unitOfWork.SaveChangesAsync();
+
+                            if (barberQueueResult != null)
                             {
-                                result.Succeeded = true;
-                                result.Data = mapper.Map<BarberDTO>(barberToReturn);
-                                result.Errors.Add("Failed to create barber !");
-                                return result;
-                            } 
+
+                                var barbers = await unitOfWork.BarbersManager.GetAsync(b => b.Id == barberResult.Id, includeProperties: "BarberQueue,BarberProfilePhoto");
+
+                                Barber barberToReturn = barbers.FirstOrDefault();
+
+                                if (barberToReturn != null)
+                                {
+                                    result.Succeeded = true;
+                                    result.Data = mapper.Map<BarberDTO>(barberToReturn);
+                                    result.Errors.Add("Failed to create barber !");
+                                    return result;
+                                }
+                                else
+                                {
+                                    result.Succeeded = false;
+                                    result.Errors.Add("Error creating barber !");
+                                    return result;
+                                }
+                            }
                             else
                             {
                                 result.Succeeded = false;
-                                result.Errors.Add("Error creating barber !");
+                                result.Errors.Add("Error creating barber queue !");
                                 return result;
                             }
                         }
                         else
                         {
                             result.Succeeded = false;
-                            result.Errors.Add("Error creating barber queue !");
+                            result.Errors.Add("Failed to create barber profile photo !");
                             return result;
                         }
+
                     }
                     else
                     {
                         result.Succeeded = false;
-                        result.Errors.Add("Failed to create barber profile photo !");
+                        result.Errors.Add("A barber already exists with the specified finger print id !");
                         return result;
                     }
-
                 }
                 else
                 {
@@ -450,16 +465,16 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public async Task<ApiResponse<bool>> SignInBarber(int id)
+        public async Task<ApiResponse<bool>> SignInBarberAdmin(BarberLoginRequestAdminDTO request)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
             try
             {
-                Barber barber = await unitOfWork.BarbersManager.GetByIdAsync(id);
+                Barber barber = await unitOfWork.BarbersManager.GetByIdAsync(request.BarberId);
 
                 if (barber != null)
                 {
-                    var barberLoginResult = await unitOfWork.BarberLoginsManager.GetAsync(b => b.BarberId == id && b.LoginDateTime.Value.Date == DateTime.Now.Date);
+                    var barberLoginResult = await unitOfWork.BarberLoginsManager.GetAsync(b => b.BarberId == request.BarberId && b.LoginDateTime.Value.Date == request.Time.Date);
 
                     if(barberLoginResult.FirstOrDefault() == null)
                     {
@@ -468,7 +483,7 @@ namespace TopSaloon.ServiceLayer
 
                         newLogin.BarberId = barber.Id;
 
-                        newLogin.LoginDateTime = DateTime.Now;
+                        newLogin.LoginDateTime = request.Time;
 
                         var res = await unitOfWork.BarberLoginsManager.CreateAsync(newLogin);
 
@@ -513,17 +528,17 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public async Task<ApiResponse<bool>> SignOutBarber(int id)
+        public async Task<ApiResponse<bool>> SignOutBarberAdmin(BarberLogoutRequestAdminDTO request)
         {
             ApiResponse<bool> result = new ApiResponse<bool>();
 
             try
             {
-                Barber barber = await unitOfWork.BarbersManager.GetByIdAsync(id);
+                Barber barber = await unitOfWork.BarbersManager.GetByIdAsync(request.BarberId);
 
                 if (barber != null)
                 {
-                    var barberLoginResult = await unitOfWork.BarberLoginsManager.GetAsync(b => b.BarberId == id && b.LoginDateTime.Value.Date == DateTime.Now.Date);
+                    var barberLoginResult = await unitOfWork.BarberLoginsManager.GetAsync(b => b.BarberId == request.BarberId && b.LoginDateTime.Value.Date == request.Time.Date);
 
                     if (barberLoginResult.FirstOrDefault() == null)
                     {
@@ -536,7 +551,7 @@ namespace TopSaloon.ServiceLayer
                     {
                         BarberLogin barberLoginToEdit = barberLoginResult.FirstOrDefault();
 
-                        barberLoginToEdit.logoutDateTime = DateTime.Now;
+                        barberLoginToEdit.logoutDateTime = request.Time;
 
                         barber.Status = "Unavailable";
 
@@ -567,6 +582,114 @@ namespace TopSaloon.ServiceLayer
                     return result;
                 }
 
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+        }
+        public async Task<ApiResponse<bool>> BarberAttendanceBiometric(BarberAttendanceDTO request)
+        {
+            ApiResponse<bool> result = new ApiResponse<bool>();
+            try
+            {
+                var barberResult = await unitOfWork.BarbersManager.GetAsync(a => a.BarberFingerPrintId == request.BarberFingerprintId);
+
+                Barber barber = barberResult.FirstOrDefault();
+
+                if (barber != null)
+                {
+
+                    if (request.Method == 0) // Login Request . 
+                    {
+
+                        var barberLoginResult = await unitOfWork.BarberLoginsManager.GetAsync(b => b.BarberId == barber.Id && b.LoginDateTime.Value.Date == request.CheckDate.Date);
+
+                        if (barberLoginResult.FirstOrDefault() == null)
+                        {
+
+                            BarberLogin newLogin = new BarberLogin();
+
+                            newLogin.BarberId = barber.Id;
+
+                            newLogin.LoginDateTime = request.CheckDate;
+
+                            var res = await unitOfWork.BarberLoginsManager.CreateAsync(newLogin);
+
+                            await unitOfWork.SaveChangesAsync();
+
+                            if (res != null)
+                            {
+                                result.Succeeded = true;
+                                result.Data = true;
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Data = false;
+                                result.Errors.Add("Failed to sign in barber !");
+                                return result;
+                            }
+
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Data = false;
+                            result.Errors.Add("Barber already signed in today !");
+                            return result;
+                        }
+
+                    }
+                    else // Logout Request . 
+                    {
+                        var barberLoginResult = await unitOfWork.BarberLoginsManager.GetAsync(b => b.BarberId == barber.Id && b.LoginDateTime.Value.Date == request.CheckDate.Date);
+
+                        if (barberLoginResult.FirstOrDefault() == null)
+                        {
+                            result.Succeeded = false;
+                            result.Data = false;
+                            result.Errors.Add("Barber hasn't signed in today , Barber needs to sign in first in order to be able to sign out !");
+                            return result;
+                        }
+                        else
+                        {
+                            BarberLogin barberLoginToEdit = barberLoginResult.FirstOrDefault();
+
+                            barberLoginToEdit.logoutDateTime = request.CheckDate;
+
+                            barber.Status = "Unavailable";
+
+                            var res = await unitOfWork.BarberLoginsManager.UpdateAsync(barberLoginToEdit);
+
+                            await unitOfWork.SaveChangesAsync();
+
+                            if (res == true)
+                            {
+                                result.Succeeded = true;
+                                result.Data = true;
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Data = false;
+                                result.Errors.Add("Failed to sign out barber !");
+                                return result;
+                            }
+
+                        }
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("Failed to find specified barber !");
+                    return result;
+                }
             }
             catch (Exception ex)
             {
