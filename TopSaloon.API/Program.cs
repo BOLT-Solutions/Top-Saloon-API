@@ -14,23 +14,23 @@ namespace TopSaloon.API
     {
         public static void Main(string[] args)
         {
-            // CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
 
-            var configuration = new ConfigurationBuilder()
-            .AddCommandLine(args)
-            .Build();
-            var hostUrl = configuration["hosturl"];
-            if (string.IsNullOrEmpty(hostUrl))
-                hostUrl = "http://0.0.0.0:8023";
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseUrls(hostUrl)   // <!-- this 
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .UseConfiguration(configuration)
-                .Build();
-            host.Run();
+            //var configuration = new ConfigurationBuilder()
+            //.AddCommandLine(args)
+            //.Build();
+            //var hostUrl = configuration["hosturl"];
+            //if (string.IsNullOrEmpty(hostUrl))
+            //    hostUrl = "http://0.0.0.0:8023";
+            //var host = new WebHostBuilder()
+            //    .UseKestrel()
+            //    .UseUrls(hostUrl)   // <!-- this 
+            //    .UseContentRoot(Directory.GetCurrentDirectory())
+            //    .UseIISIntegration()
+            //    .UseStartup<Startup>()
+            //    .UseConfiguration(configuration)
+            //    .Build();
+            //host.Run();
 
         }
 
@@ -43,12 +43,12 @@ namespace TopSaloon.API
         //        });
 
 
-        //public static IHostBuilder CreateHostBuilder(string[] args) =>
-        //    Host.CreateDefaultBuilder(args)
-        //    .ConfigureWebHostDefaults(webBuilder =>
-        //    {
-        //        webBuilder.UseStartup<Startup>();
-        //    });
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>();
+            });
 
     }
 
