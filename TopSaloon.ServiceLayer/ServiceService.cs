@@ -79,7 +79,8 @@ namespace TopSaloon.ServiceLayer
             {
                 int serviceId = Int32.Parse(ServiceId);
                 var service = await unitOfWork.ServicesManager.GetByIdAsync(serviceId);
-                var serviceResult = await unitOfWork.ServicesManager.RemoveAsync(service);
+                service.isDeleted = true;
+                var serviceResult = await unitOfWork.ServicesManager.UpdateAsync(service);
                 if (serviceResult == true)
                 {
                     var res2 = await unitOfWork.SaveChangesAsync();
@@ -169,7 +170,7 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<List<ServiceDTO>> result = new ApiResponse<List<ServiceDTO>>();
             try
             {
-               var services  = await unitOfWork.ServicesManager.GetAsync(b => b.Id !=null, 0, 0, null, includeProperties: "FeedBackQuestions");
+               var services  = await unitOfWork.ServicesManager.GetAsync(b => b.isDeleted==false, includeProperties: "FeedBackQuestions");
                 if (services != null)
                 {
                     result.Data = mapper.Map<List<ServiceDTO>>(services.ToList());

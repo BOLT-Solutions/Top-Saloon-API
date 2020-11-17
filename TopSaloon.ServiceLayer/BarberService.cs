@@ -76,7 +76,7 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<BarberDTO> result = new ApiResponse<BarberDTO>();
             try
             {
-                var barber = await unitOfWork.BarbersManager.GetAsync(A=>A.Id==BarberId, includeProperties: "BarberQueue");
+                var barber = await unitOfWork.BarbersManager.GetAsync(A=>A.Id==BarberId && A.isDeleted==false, includeProperties: "BarberQueue");
                  List<Barber> barberData = barber.ToList();
 
                 if (barber != null)
@@ -295,7 +295,7 @@ namespace TopSaloon.ServiceLayer
 
             try
             {
-                var barbersList = await unitOfWork.BarbersManager.GetAsync(includeProperties: "BarberProfilePhoto");
+                var barbersList = await unitOfWork.BarbersManager.GetAsync(a=> a.isDeleted == false,includeProperties: "BarberProfilePhoto");
 
                 List <Barber> barberListToReturn = barbersList.ToList();
 
@@ -330,7 +330,7 @@ namespace TopSaloon.ServiceLayer
 
                 var res = await SetQueueWaitingTimes();
 
-                var Barbers = await unitOfWork.BarbersManager.GetAsync(b => b.Status == "Available", includeProperties: "BarberProfilePhoto,BarberQueue");
+                var Barbers = await unitOfWork.BarbersManager.GetAsync(b => b.Status == "Available" && b.isDeleted == false, includeProperties: "BarberProfilePhoto,BarberQueue");
 
                 if (Barbers != null)
                 {
@@ -360,10 +360,10 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 var barberToDelete = await unitOfWork.BarbersManager.GetByIdAsync(id);
-
-                if(barberToDelete != null)
+                barberToDelete.isDeleted = true;
+                if (barberToDelete != null)
                 {
-                    var RemoveBarberResult = await unitOfWork.BarbersManager.RemoveAsync(barberToDelete);
+                    var RemoveBarberResult = await unitOfWork.BarbersManager.UpdateAsync(barberToDelete);
 
                     await unitOfWork.SaveChangesAsync();
 

@@ -28,7 +28,7 @@ namespace TopSaloon.Core.Managers
         {
             return await Task.Run(() =>
             {
-                  List<Barber> barbers = context.Barbers.Where(a=> a.Status== "Available").ToList();
+                  List<Barber> barbers = context.Barbers.Where(a=> a.Status== "Available" && a.isDeleted==false).ToList();
                    return barbers;
                 
             });
@@ -37,7 +37,7 @@ namespace TopSaloon.Core.Managers
         {
             return await Task.Run(() =>
             {
-                int CountOfBarber = context.Barbers.Where(a => a.Status == "Available").ToList().Count();
+                int CountOfBarber = context.Barbers.Where(a => a.Status == "Available" && a.isDeleted == false).ToList().Count();
                 return CountOfBarber;
 
             });
