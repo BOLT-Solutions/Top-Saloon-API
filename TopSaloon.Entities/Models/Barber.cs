@@ -15,6 +15,8 @@ namespace TopSaloon.Entities.Models
         public virtual Shop Shop { get; set; }
         public virtual BarberProfilePhoto BarberProfilePhoto { get; set; }
         public virtual BarberQueue BarberQueue { get; set; }
-    
+        public bool isDeleted { get; set; }
+
+
     }
 }

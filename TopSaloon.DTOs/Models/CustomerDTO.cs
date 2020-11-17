@@ -16,5 +16,7 @@ namespace TopSaloon.DTOs.Models
         public DateTime? LastVisitDate { get; set; }
         public int? TotalNumberOfVisits { get; set; }
         public List<CompleteOrderDTO> CompleteOrders { get; set; }
+        public bool isDeleted { get; set; }
+
     }
 }

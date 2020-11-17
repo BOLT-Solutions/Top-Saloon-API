@@ -14,7 +14,7 @@ namespace TopSaloon.API
     {
         public static void Main(string[] args)
         {
-              CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
 
             //var configuration = new ConfigurationBuilder()
             //.AddCommandLine(args)
