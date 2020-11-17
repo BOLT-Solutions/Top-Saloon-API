@@ -384,6 +384,7 @@ namespace TopSaloon.ServiceLayer
 
                     var queueResult = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == order.BarberQueueId, includeProperties: "Orders");
                     var queue = queueResult.FirstOrDefault();
+
                     for (int i = 0; i < queue.Orders.Count; i++) 
                     {
                         if (i == 0)
@@ -400,6 +401,8 @@ namespace TopSaloon.ServiceLayer
 
                     await unitOfWork.SaveChangesAsync();
 
+
+
                     //Create order feedback
                     OrderFeedback orderFeedback = new OrderFeedback();
                     orderFeedback.IsSubmitted = false;
@@ -412,18 +415,23 @@ namespace TopSaloon.ServiceLayer
 
                     for(int i=0; i<orderServicesHistory.Count; i++)
                     {
-                        var serviceToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
-                        var service = serviceToFetch.FirstOrDefault();
+                        var serviceFeedbackQuestionsResult = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
+                        var serviceFeedbackQuestionsList = serviceFeedbackQuestionsResult.ToList();
 
-                        OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
-                        orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
-                        orderFeedbackQuestionToCreate.QuestionAR = service.QuestionAR;
-                        orderFeedbackQuestionToCreate.QuestionEN = service.QuestionEN;
-                        orderFeedbackQuestionToCreate.Rating = 0;
+                        for(int j = 0; j < serviceFeedbackQuestionsList.Count; j++)
+                        {
 
-                        var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
-                        await unitOfWork.SaveChangesAsync();
+                            OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
+                            orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
+                            orderFeedbackQuestionToCreate.QuestionAR = serviceFeedbackQuestionsList[j].QuestionAR;
+                            orderFeedbackQuestionToCreate.QuestionEN = serviceFeedbackQuestionsList[j].QuestionEN;
+                            orderFeedbackQuestionToCreate.Rating = 0;
+                            var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
+                            await unitOfWork.SaveChangesAsync();
+
+                        }
                     }
+
                     result.Succeeded = true;
                     result.Data = "Finalized successfully";
                     return result;
