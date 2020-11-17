@@ -14,6 +14,7 @@ namespace TopSaloon.Entities.Models
         public DateTime? LastVisitDate { get; set; }
         public int? TotalNumberOfVisits { get; set; }
         public List<CompleteOrder> CompleteOrders { get; set; }
+        public bool isDeleted { get; set; }
 
     }
 }

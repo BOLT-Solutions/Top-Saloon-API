@@ -12,6 +12,7 @@ namespace TopSaloon.Entities.Models
         public int? Time { get; set; }
         public string AdminPath { get; set; }
         public string UserPath { get; set; }
+        public bool isDeleted { get; set; }
 
         public virtual List<ServiceFeedBackQuestion> FeedBackQuestions { get; set; }
     }
