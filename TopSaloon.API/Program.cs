@@ -21,7 +21,7 @@ namespace TopSaloon.API
             //.Build();
             //var hostUrl = configuration["hosturl"];
             //if (string.IsNullOrEmpty(hostUrl))
-            //    hostUrl = "http://0.0.0.0:8023";
+            //    hostUrl = "http://0.0.0.0:8030";
             //var host = new WebHostBuilder()
             //    .UseKestrel()
             //    .UseUrls(hostUrl)   // <!-- this 
