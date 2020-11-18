@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using TopSaloon.API.AutoMapperConfig;
 using TopSaloon.API.Extensions;
 using TopSaloon.Core;
@@ -35,12 +36,12 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC20\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=A_12345;"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-PC12\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssw0rd;"));
 
-            //  services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
-            //{
-            //    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
-            //}));
+            //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
+          //  {
+          //    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
+          //}));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -80,7 +81,8 @@ namespace TopSaloon.API
 
             services.AddBusinessServices();
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(options =>
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddSwaggerGen();
         }
