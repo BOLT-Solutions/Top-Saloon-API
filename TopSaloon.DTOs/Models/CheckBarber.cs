@@ -7,6 +7,9 @@ namespace TopSaloon.DTOs.Models
     public class CheckBarber
     {
         public int  Id { get; set; }
-        public DateTime? date { get; set; }
+        public DateTime date   { get; set; }
+
+    
     }
+  
 }
