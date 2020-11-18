@@ -443,7 +443,9 @@ namespace TopSaloon.ServiceLayer
 
                 if(barberToEdit != null)
                 {
-                    var CheckIfBarberLogin = await unitOfWork.BarberLoginsManager.GetAsync(result => result.BarberId==checkBarber.Id && result.LoginDateTime.Value.Date == checkBarber.date.Value.Date);
+                    
+                                      
+                    var CheckIfBarberLogin = await unitOfWork.BarberLoginsManager.GetAsync(result => result.BarberId==checkBarber.Id && result.LoginDateTime.Value.Date ==checkBarber.date);
                     
                     if (CheckIfBarberLogin.FirstOrDefault() != null)
                     {
