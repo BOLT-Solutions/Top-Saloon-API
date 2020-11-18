@@ -426,18 +426,21 @@ namespace TopSaloon.ServiceLayer
 
 
 
-                     //Create Orderfeedback questions
+                    //Create Orderfeedback questions
                     for (int i = 0; i < orderServicesHistory.Count; i++)
                     {
-                        var serviceToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
-                        var service = serviceToFetch.FirstOrDefault();
-                        OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
-                        orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
-                        orderFeedbackQuestionToCreate.QuestionAR = service.QuestionAR;
-                        orderFeedbackQuestionToCreate.QuestionEN = service.QuestionEN;
-                        orderFeedbackQuestionToCreate.Rating = 0;
-                        var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
-                        await unitOfWork.SaveChangesAsync();
+                        var serviceFeedbackQuestionsResult = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
+                        var serviceFeedbackQuestionsList = serviceFeedbackQuestionsResult.ToList();
+                        for (int j = 0; j < serviceFeedbackQuestionsList.Count; j++)
+                        {
+                            OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
+                            orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
+                            orderFeedbackQuestionToCreate.QuestionAR = serviceFeedbackQuestionsList[j].QuestionAR;
+                            orderFeedbackQuestionToCreate.QuestionEN = serviceFeedbackQuestionsList[j].QuestionEN;
+                            orderFeedbackQuestionToCreate.Rating = 0;
+                            var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
+                            await unitOfWork.SaveChangesAsync();
+                        }
                     }
 
                     //var googleSheetsRecordResult = await AddOrderToGoogleSheets(completeOrder);
