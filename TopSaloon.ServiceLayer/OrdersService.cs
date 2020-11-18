@@ -424,24 +424,19 @@ namespace TopSaloon.ServiceLayer
                     var orderFeedbackCreationResult = await unitOfWork.OrderFeedBacksManager.CreateAsync(orderFeedback);
                     await unitOfWork.SaveChangesAsync();
 
-                    //Create Orderfeedback questions
 
-                    for(int i=0; i<orderServicesHistory.Count; i++)
+
+                     //Create Orderfeedback questions
+                    for (int i = 0; i < orderServicesHistory.Count; i++)
                     {
-                        var serviceFeedbackQuestionsResult = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
-                        var serviceFeedbackQuestionsList = serviceFeedbackQuestionsResult.ToList();
-
-                        for(int j = 0; j < serviceFeedbackQuestionsList.Count; j++)
-                        {
-
+                        var serviceToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
+                        var service = serviceToFetch.FirstOrDefault();
                         OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
                         orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
                         orderFeedbackQuestionToCreate.QuestionAR = service.QuestionAR;
                         orderFeedbackQuestionToCreate.QuestionEN = service.QuestionEN;
                         orderFeedbackQuestionToCreate.Rating = 0;
-
                         var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
-
                         await unitOfWork.SaveChangesAsync();
                     }
 
@@ -471,7 +466,6 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-
         public ApiResponse<object> AddOrderToGoogleSheets(OrderToRecord GoogleSheetOrder)
         {
             ApiResponse<object> result = new ApiResponse<object>();
