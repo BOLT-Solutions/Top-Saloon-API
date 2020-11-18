@@ -432,38 +432,53 @@ namespace TopSaloon.ServiceLayer
             }
 
         }
-        public async Task<ApiResponse<BarberDTO>> ChangeBarberStatus(int id)
+        public async Task<ApiResponse<BarberDTO>> ChangeBarberStatus(CheckBarber checkBarber)
         {
             ApiResponse<BarberDTO> result = new ApiResponse<BarberDTO>();
             try
             {
-                Barber barberToEdit = await unitOfWork.BarbersManager.GetByIdAsync(id);
+                Barber barberToEdit = await unitOfWork.BarbersManager.GetByIdAsync(checkBarber.Id);
+
+                
 
                 if(barberToEdit != null)
                 {
-                    if(barberToEdit.Status == "Available")
+                    
+                                      
+                    var CheckIfBarberLogin = await unitOfWork.BarberLoginsManager.GetAsync(result => result.BarberId==checkBarber.Id && result.LoginDateTime.Value.Date ==checkBarber.date);
+                    
+                    if (CheckIfBarberLogin.FirstOrDefault() != null)
                     {
-                        barberToEdit.Status = "Unavailable";
-                    }
-                    else
-                    {
-                        barberToEdit.Status = "Available";
-                    }
+                        if (barberToEdit.Status == "Available")
+                        {
+                            barberToEdit.Status = "Unavailable";
+                        }
+                        else
+                        {
+                            barberToEdit.Status = "Available";
+                        }
 
-                    var res = await unitOfWork.BarbersManager.UpdateAsync(barberToEdit);
+                        var res = await unitOfWork.BarbersManager.UpdateAsync(barberToEdit);
 
-                    await unitOfWork.SaveChangesAsync();
+                        await unitOfWork.SaveChangesAsync();
 
-                    if (res == true)
-                    {
-                        result.Succeeded = true;
-                        result.Data = mapper.Map<BarberDTO>(barberToEdit);
-                        return result;
+                        if (res == true)
+                        {
+                            result.Succeeded = true;
+                            result.Data = mapper.Map<BarberDTO>(barberToEdit);
+                            return result;
+                        }
+                        else
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Failed to update barber status !");
+                            return result;
+                        }
                     }
                     else
                     {
                         result.Succeeded = false;
-                        result.Errors.Add("Failed to update barber status !");
+                        result.Errors.Add("barber is not logged in !");
                         return result;
                     }
 

@@ -397,6 +397,7 @@ namespace TopSaloon.ServiceLayer
 
                     var queueResult = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == order.BarberQueueId, includeProperties: "Orders");
                     var queue = queueResult.FirstOrDefault();
+
                     for (int i = 0; i < queue.Orders.Count; i++) 
                     {
                         if (i == 0)
@@ -413,6 +414,8 @@ namespace TopSaloon.ServiceLayer
 
                     await unitOfWork.SaveChangesAsync();
 
+
+
                     //Create order feedback
                     OrderFeedback orderFeedback = new OrderFeedback();
                     orderFeedback.IsSubmitted = false;
@@ -425,8 +428,11 @@ namespace TopSaloon.ServiceLayer
 
                     for(int i=0; i<orderServicesHistory.Count; i++)
                     {
-                        var serviceToFetch = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
-                        var service = serviceToFetch.FirstOrDefault();
+                        var serviceFeedbackQuestionsResult = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
+                        var serviceFeedbackQuestionsList = serviceFeedbackQuestionsResult.ToList();
+
+                        for(int j = 0; j < serviceFeedbackQuestionsList.Count; j++)
+                        {
 
                         OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
                         orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
