@@ -11,6 +11,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using TopSaloon.Repository.Common;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using Google.Apis.Services;
+using System.Collections.Immutable;
 
 namespace TopSaloon.ServiceLayer
 {
@@ -319,7 +325,6 @@ namespace TopSaloon.ServiceLayer
             }
         }
             //--------------------------------- Finalize Order ------------------------------------------------//
-
         public async Task<ApiResponse<string>> FinalizeOrder(int orderId)
         {
             ApiResponse<string> result = new ApiResponse<string>();
@@ -367,10 +372,18 @@ namespace TopSaloon.ServiceLayer
                     List<OrderService> orderServicesHistory = new List<OrderService>();
                     orderServicesHistory = order.OrderServices;
 
+                    List<ServicesToRecord> GoogleSheetServiceList = new List<ServicesToRecord>();
                     for(int i=0; i<order.OrderServices.Count; i++)
                     {
                         completeOrder.OrderServicesList = completeOrder.OrderServicesList + order.OrderServices[i].ServiceId + ",";
-                        
+
+                        ServicesToRecord GoogleSheetServiceItem = new ServicesToRecord();
+                        GoogleSheetServiceItem.ServiceNameAR = order.OrderServices[i].NameAR;
+                        GoogleSheetServiceItem.ServiceNameEN = order.OrderServices[i].NameEN;
+                        GoogleSheetServiceItem.ServiceTime = order.OrderServices[i].Time;
+                        GoogleSheetServiceItem.ServicePrice = order.OrderServices[i].Price;
+
+                        GoogleSheetServiceList.Add(GoogleSheetServiceItem);
                     }
 
                     //Create complete order
@@ -411,16 +424,15 @@ namespace TopSaloon.ServiceLayer
                     var orderFeedbackCreationResult = await unitOfWork.OrderFeedBacksManager.CreateAsync(orderFeedback);
                     await unitOfWork.SaveChangesAsync();
 
-                    //Create Orderfeedback questions
 
-                    for(int i=0; i<orderServicesHistory.Count; i++)
+
+                    //Create Orderfeedback questions
+                    for (int i = 0; i < orderServicesHistory.Count; i++)
                     {
                         var serviceFeedbackQuestionsResult = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
                         var serviceFeedbackQuestionsList = serviceFeedbackQuestionsResult.ToList();
-
-                        for(int j = 0; j < serviceFeedbackQuestionsList.Count; j++)
+                        for (int j = 0; j < serviceFeedbackQuestionsList.Count; j++)
                         {
-
                             OrderFeedbackQuestion orderFeedbackQuestionToCreate = new OrderFeedbackQuestion();
                             orderFeedbackQuestionToCreate.OrderFeedbackId = orderFeedbackCreationResult.Id;
                             orderFeedbackQuestionToCreate.QuestionAR = serviceFeedbackQuestionsList[j].QuestionAR;
@@ -428,10 +440,17 @@ namespace TopSaloon.ServiceLayer
                             orderFeedbackQuestionToCreate.Rating = 0;
                             var FeedbackQuestionCreationResult = await unitOfWork.OrderFeedBackQuestionsManager.CreateAsync(orderFeedbackQuestionToCreate);
                             await unitOfWork.SaveChangesAsync();
-
                         }
                     }
 
+                    //var googleSheetsRecordResult = await AddOrderToGoogleSheets(completeOrder);
+                    OrderToRecord GoogleSheetOrder = new OrderToRecord();
+                    GoogleSheetOrder.BarberNameAR = completeOrder.BarberNameAR;
+                    GoogleSheetOrder.BarberNameEN = completeOrder.BarberNameEN;
+                    GoogleSheetOrder.CustomerNameAR = completeOrder.CustomerNameAR;
+                    GoogleSheetOrder.CustomerNameEN = completeOrder.CustomerNameEN;
+                    GoogleSheetOrder.Services = GoogleSheetServiceList;
+                    AddOrderToGoogleSheets(GoogleSheetOrder); // Save order history in google spreadsheet
                     result.Succeeded = true;
                     result.Data = "Finalized successfully";
                     return result;
@@ -450,6 +469,18 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
+        public ApiResponse<object> AddOrderToGoogleSheets(OrderToRecord GoogleSheetOrder)
+        {
+            ApiResponse<object> result = new ApiResponse<object>();
+
+            var gsh = new GoogleSheetsHelper(); // Initialize Google Sheets Helper
+
+            gsh.CreateEntry(GoogleSheetOrder); // Create New google sheet row record
+            result.Succeeded = true;
+            return result;
+        }
+
+
 
         public async Task<ApiResponse<bool>> SetQueueWaitingTimes()
         {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TopSaloon.API.Controllers.Common;
 using TopSaloon.DTOs.Models;
 using TopSaloon.ServiceLayer;
+using TopSaloon.Repository.Common;
 
 namespace TopSaloon.API.Controllers
 {
@@ -35,6 +36,11 @@ namespace TopSaloon.API.Controllers
         public async Task<IActionResult> SetOrderService(int orderServiceId)
         {
             return await EditItemResponseHandler(async () => await service.SetOrderService(orderServiceId));
+        }
+        [HttpPost("GoogleSheets")]
+        public async Task<IActionResult> GoogleSheets(OrderToRecord orderToRecord)
+        {
+            return await AddItemResponseHandler(async () => service.AddOrderToGoogleSheets(orderToRecord));
         }
 
         [HttpPut("CancelOrder")]
