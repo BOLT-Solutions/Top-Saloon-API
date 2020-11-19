@@ -37,11 +37,11 @@ namespace TopSaloon.API.Controllers
         {
             return await EditItemResponseHandler(async () => await service.SetOrderService(orderServiceId));
         }
-        //[HttpPost("GoogleSheets")]
-        //public async Task<IActionResult> GoogleSheets(OrderToRecord orderToRecord)
-        //{
-        //    return await AddItemResponseHandler(async () => service.AddOrderToGoogleSheets(orderToRecord));
-        //}
+        [HttpPost("GoogleSheets")]
+        public async Task<IActionResult> GoogleSheets(OrderToRecord orderToRecord)
+        {
+            return await AddItemResponseHandler(async () => service.AddOrderToGoogleSheets(orderToRecord));
+        }
 
         [HttpPut("CancelOrder")]
         public async Task<IActionResult> CancelOrder(string orderId)

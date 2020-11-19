@@ -473,30 +473,10 @@ namespace TopSaloon.ServiceLayer
         {
             ApiResponse<object> result = new ApiResponse<object>();
 
-            var gsh = new GoogleSheetsHelper("TopSaloon-fcb13327a38f.json", "171QH0qSv_75dXz8GwNyY_pisAZIRMqNNzz65LN1zhbU");
+            var gsh = new GoogleSheetsHelper(); // Initialize Google Sheets Helper
 
-
-           
-            gsh.CreateEntry(GoogleSheetOrder);
-
-            //var gsp = new GoogleSheetParameters() { RangeColumnStart = 1, RangeRowStart = 2, RangeColumnEnd = 4, RangeRowEnd = 100, FirstRowIsHeaders = false, SheetName = "Top Saloon" };
-            //var rowValues = gsh.GetDataFromSheet(gsp);
-            //var row1 = new GoogleSheetRow();
-            ////var row2 = new GoogleSheetRow();
-
-
-            //var cell1 = new GoogleSheetCell() { CellValue = orderToRecord.CustomerNameAR };
-            //var cell2 = new GoogleSheetCell() { CellValue = orderToRecord.BarberNameAR };
-            //var cell3 = new GoogleSheetCell() { CellValue = orderToRecord.OrderServicesList };
-            //row1.Cells.Add(cell1);
-
-            //var rows = new List<GoogleSheetRow>() { row1 };
-
-            //gsh.AddCells(new GoogleSheetParameters() { SheetName = "Top Saloon", RangeColumnStart = 1, RangeRowStart = 1 }, rows);
-
-
+            gsh.CreateEntry(GoogleSheetOrder); // Create New google sheet row record
             result.Succeeded = true;
-            //result.Data = list;
             return result;
         }
 
