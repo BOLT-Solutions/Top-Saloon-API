@@ -439,15 +439,16 @@ namespace TopSaloon.ServiceLayer
             {
                 Barber barberToEdit = await unitOfWork.BarbersManager.GetByIdAsync(checkBarber.Id);
 
-                
-
                 if(barberToEdit != null)
                 {
-                    
-                                      
-                    var CheckIfBarberLogin = await unitOfWork.BarberLoginsManager.GetAsync(result => result.BarberId==checkBarber.Id && result.LoginDateTime.Value.Date ==checkBarber.date);
-                    
-                    if (CheckIfBarberLogin.FirstOrDefault() != null)
+
+                    DateTime date = checkBarber.Date.Value.AddHours(1);
+                    var barberLoginsResult = await unitOfWork.BarberLoginsManager.GetAsync(result => result.BarberId==checkBarber.Id && result.LoginDateTime.Value.Date ==checkBarber.Date.Value.Date);
+
+                    BarberLogin login = barberLoginsResult.FirstOrDefault();
+
+
+                    if (login != null)
                     {
                         if (barberToEdit.Status == "Available")
                         {
@@ -511,6 +512,7 @@ namespace TopSaloon.ServiceLayer
 
                     if(barberLoginResult.FirstOrDefault() == null)
                     {
+                        request.Time = request.Time.AddHours(1);
 
                         BarberLogin newLogin = new BarberLogin();
 
@@ -583,7 +585,7 @@ namespace TopSaloon.ServiceLayer
                     else
                     {
                         BarberLogin barberLoginToEdit = barberLoginResult.FirstOrDefault();
-
+                        request.Time = request.Time.AddHours(1);
                         barberLoginToEdit.logoutDateTime = request.Time;
 
                         barber.Status = "Unavailable";

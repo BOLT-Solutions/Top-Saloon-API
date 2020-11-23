@@ -11,5 +11,9 @@ namespace TopSaloon.DTOs.Models
         public DateTime? LoginDateTime { get; set; }
         public DateTime? logoutDateTime { get; set; }
 
+        public BarberLoginDTO()
+        {
+            this.LoginDateTime = this.LoginDateTime.Value.AddHours(2);
+        }
     }
 }
