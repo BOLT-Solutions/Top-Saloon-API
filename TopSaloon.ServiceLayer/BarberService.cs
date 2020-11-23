@@ -441,8 +441,11 @@ namespace TopSaloon.ServiceLayer
 
                 if(barberToEdit != null)
                 {
+                    var info = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+                    DateTimeOffset localServerTime = DateTimeOffset.Now;
+                    DateTimeOffset localTime = TimeZoneInfo.ConvertTime(localServerTime, info);
 
-                    DateTime date = checkBarber.Date.Value.AddHours(1);
+                    DateTime date = localTime.DateTime;
                     var barberLoginsResult = await unitOfWork.BarberLoginsManager.GetAsync(result => result.BarberId==checkBarber.Id && result.LoginDateTime.Value.Date ==checkBarber.Date.Value.Date);
 
                     BarberLogin login = barberLoginsResult.FirstOrDefault();
@@ -512,7 +515,10 @@ namespace TopSaloon.ServiceLayer
 
                     if(barberLoginResult.FirstOrDefault() == null)
                     {
-                        request.Time = request.Time.AddHours(1);
+                        var info = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+                        DateTimeOffset localServerTime = DateTimeOffset.Now;
+                        DateTimeOffset localTime = TimeZoneInfo.ConvertTime(localServerTime, info);
+                        request.Time = localTime.DateTime;
 
                         BarberLogin newLogin = new BarberLogin();
 
@@ -585,7 +591,10 @@ namespace TopSaloon.ServiceLayer
                     else
                     {
                         BarberLogin barberLoginToEdit = barberLoginResult.FirstOrDefault();
-                        request.Time = request.Time.AddHours(1);
+                        var info = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+                        DateTimeOffset localServerTime = DateTimeOffset.Now;
+                        DateTimeOffset localTime = TimeZoneInfo.ConvertTime(localServerTime, info);
+                        request.Time = localTime.DateTime;
                         barberLoginToEdit.logoutDateTime = request.Time;
 
                         barber.Status = "Unavailable";
