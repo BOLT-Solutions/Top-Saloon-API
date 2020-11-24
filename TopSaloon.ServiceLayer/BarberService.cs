@@ -453,32 +453,47 @@ namespace TopSaloon.ServiceLayer
 
                     if (login != null)
                     {
-                        if (barberToEdit.Status == "Available")
-                        {
-                            barberToEdit.Status = "Unavailable";
-                        }
-                        else
-                        {
-                            barberToEdit.Status = "Available";
-                        }
+                        DateTime dateTime = login.logoutDateTime.Value.Date;
 
-                        var res = await unitOfWork.BarbersManager.UpdateAsync(barberToEdit);
-
-                        await unitOfWork.SaveChangesAsync();
-
-                        if (res == true)
+                     
+                        
+                        if (dateTime == null)
                         {
-                            result.Succeeded = true;
-                            result.Data = mapper.Map<BarberDTO>(barberToEdit);
-                            return result;
-                        }
+                            if (barberToEdit.Status == "Available")
+                            {
+                                barberToEdit.Status = "Unavailable";
+                            }
+                            else
+                            {
+                                barberToEdit.Status = "Available";
+                            }
+
+                            var res = await unitOfWork.BarbersManager.UpdateAsync(barberToEdit);
+
+                            await unitOfWork.SaveChangesAsync();
+
+                            if (res == true)
+                            {
+                                result.Succeeded = true;
+                                result.Data = mapper.Map<BarberDTO>(barberToEdit);
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Errors.Add("Failed to update barber status !");
+                                return result;
+                            }
+                    }
                         else
                         {
                             result.Succeeded = false;
-                            result.Errors.Add("Failed to update barber status !");
+                            result.Errors.Add("A Barber is already sign out");
                             return result;
                         }
-                    }
+                }
+
+                      
                     else
                     {
                         result.Succeeded = false;
