@@ -454,6 +454,9 @@ namespace TopSaloon.ServiceLayer
                     if (login != null)
                     {
                         DateTime dateTime = login.logoutDateTime.Value.Date;
+
+                     
+                        
                         if (dateTime == null)
                         {
                             if (barberToEdit.Status == "Available")
