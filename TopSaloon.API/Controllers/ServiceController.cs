@@ -42,6 +42,13 @@ namespace TopSalon.API.Controllers
         {
             return await GetResponseHandler(async () => await service.GetServicesById(id));
         }
+        [HttpPost("modifyservice")]
+        public async Task<IActionResult> modifyservice(ModifyService modifyService)
+        {
+            return await GetResponseHandler(async () => await service.ModifyService(modifyService));
+        }
+
+
 
 
     }
