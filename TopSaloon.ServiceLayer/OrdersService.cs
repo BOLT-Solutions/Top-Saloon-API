@@ -332,11 +332,15 @@ namespace TopSaloon.ServiceLayer
             {
                 var orderToFetch = await unitOfWork.OrdersManager.GetAsync(o => o.Id == orderId, includeProperties: "OrderServices");
                 var order = orderToFetch.FirstOrDefault();
-
+                float totalAmountToExtract = 0; 
+ 
                 if (order != null)
                 {
                     CompleteOrder completeOrder = new CompleteOrder();
+                
                     completeOrder.OrderServicesList = "";
+                    
+                    var orderToExcelExtract = order; 
                     order.OrderServices = order.OrderServices.Where(o => o.IsConfirmed == true).ToList(); // Filter confirmed services.
 
                     //Fetch customer and barber from order.
@@ -347,13 +351,15 @@ namespace TopSaloon.ServiceLayer
                     //Create complete Order
 
                     completeOrder.OrderTotalAmount = 0;
+                   
                     for (int i = 0; i < order.OrderServices.Count; i++)
                     {
                         completeOrder.OrderTotalAmount += order.OrderServices[i].Price;
                     }
+                    totalAmountToExtract =(float)completeOrder.OrderTotalAmount; 
 
                     completeOrder.OrderTotalAmount = completeOrder.OrderTotalAmount - (completeOrder.OrderTotalAmount * (order.DiscountRate / 100));
-
+ 
                     completeOrder.BarberId = barber.Id;
                     completeOrder.OrderDateTime = order.OrderDate;
                     completeOrder.OrderFinishTime = order.FinishTime;
@@ -373,17 +379,24 @@ namespace TopSaloon.ServiceLayer
                     orderServicesHistory = order.OrderServices;
 
                     List<ServicesToRecord> GoogleSheetServiceList = new List<ServicesToRecord>();
+                   
                     for(int i=0; i<order.OrderServices.Count; i++)
                     {
                         completeOrder.OrderServicesList = completeOrder.OrderServicesList + order.OrderServices[i].ServiceId + ",";
 
+                       
+                    }
+                    //construct the list of the excel 
+                    for (int i = 0; i < orderToExcelExtract.OrderServices.Count; i++)
+                    {
                         ServicesToRecord GoogleSheetServiceItem = new ServicesToRecord();
-                        GoogleSheetServiceItem.ServiceNameAR = order.OrderServices[i].NameAR;
-                        GoogleSheetServiceItem.ServiceNameEN = order.OrderServices[i].NameEN;
-                        GoogleSheetServiceItem.ServiceTime = order.OrderServices[i].Time;
-                        GoogleSheetServiceItem.ServicePrice = order.OrderServices[i].Price;
-
+                        GoogleSheetServiceItem.ServiceNameAR = orderToExcelExtract.OrderServices[i].NameAR;
+                        GoogleSheetServiceItem.ServiceNameEN = orderToExcelExtract.OrderServices[i].NameEN;
+                        GoogleSheetServiceItem.ServiceTime = orderToExcelExtract.OrderServices[i].Time;
+                        GoogleSheetServiceItem.ServicePrice = orderToExcelExtract.OrderServices[i].Price;
+                        GoogleSheetServiceItem.ServiceStatus = orderToExcelExtract.OrderServices[i].IsConfirmed;
                         GoogleSheetServiceList.Add(GoogleSheetServiceItem);
+
                     }
 
                     //Create complete order
@@ -427,6 +440,7 @@ namespace TopSaloon.ServiceLayer
 
 
                     //Create Orderfeedback questions
+
                     for (int i = 0; i < orderServicesHistory.Count; i++)
                     {
                         var serviceFeedbackQuestionsResult = await unitOfWork.ServiceFeedBackQuestionsManager.GetAsync(s => s.ServiceId == orderServicesHistory[i].ServiceId);
@@ -443,12 +457,20 @@ namespace TopSaloon.ServiceLayer
                         }
                     }
 
+                    //gets the egypt time to get the final time 
+                    
                     //var googleSheetsRecordResult = await AddOrderToGoogleSheets(completeOrder);
                     OrderToRecord GoogleSheetOrder = new OrderToRecord();
                     GoogleSheetOrder.BarberNameAR = completeOrder.BarberNameAR;
                     GoogleSheetOrder.BarberNameEN = completeOrder.BarberNameEN;
                     GoogleSheetOrder.CustomerNameAR = completeOrder.CustomerNameAR;
                     GoogleSheetOrder.CustomerNameEN = completeOrder.CustomerNameEN;
+                    GoogleSheetOrder.DiscountRate = orderToExcelExtract.DiscountRate;
+                    GoogleSheetOrder.OrderTotalAmount = totalAmountToExtract;
+                    GoogleSheetOrder.OrderEndTime = orderToExcelExtract.FinishTime.Value.Date;
+                    GoogleSheetOrder.OrderStartTime = orderToExcelExtract.OrderDate.Value.Date;
+                    GoogleSheetOrder.DiscountPrice = totalAmountToExtract - completeOrder.OrderTotalAmount; 
+                    
                     GoogleSheetOrder.Services = GoogleSheetServiceList;
                     AddOrderToGoogleSheets(GoogleSheetOrder); // Save order history in google spreadsheet
                     result.Succeeded = true;

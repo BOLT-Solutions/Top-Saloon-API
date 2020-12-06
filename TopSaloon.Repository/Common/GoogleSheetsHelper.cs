@@ -20,6 +20,7 @@ namespace TopSaloon.Repository.Common
         private readonly string _spreadsheetId = "171QH0qSv_75dXz8GwNyY_pisAZIRMqNNzz65LN1zhbU";
         static readonly string sheet = "Top-Saloon";
         GoogleCredential credential;
+        
 
         public GoogleSheetsHelper() //Initialize google sheets API.
         {
@@ -29,11 +30,13 @@ namespace TopSaloon.Repository.Common
                     System.Environment.SpecialFolder.Personal);
                 credPath = Path.Combine(credPath, "client_secret_389780309451 - 4g6qd451dhjduncf882vlqqvsnokgpmo.apps.googleusercontent.com.json"); 
                    credential = GoogleCredential.FromFile("topsaloon-1605782329463-e0653a0a3535.json").CreateScoped(Scopes);
+                
             }
             _sheetsService = new SheetsService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName,
+               
             });
         }
 
@@ -42,7 +45,7 @@ namespace TopSaloon.Repository.Common
             var range = $"{sheet}!A:F";
             var valueRange = new ValueRange();
             var oblist = new List<object>();
-
+            
             valueRange.Values = new List<IList<object>> { oblist };
             valueRange.Range = range;
 
@@ -63,6 +66,8 @@ namespace TopSaloon.Repository.Common
                 oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
                 oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
                 oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
+                
+ 
                 var appendRequest = _sheetsService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
                 appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
                 var appendReponse = appendRequest.Execute();
