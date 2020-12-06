@@ -13,6 +13,7 @@ namespace TopSaloon.DTOs.Models
         public int? Time { get; set; }
         public string AdminPath { get; set; }
         public string UserPath { get; set; }
+        public int position { get; set; }
         public virtual List<ServiceFeedbackQuestionDTO> FeedBackQuestions { get; set; }
     }
 }
