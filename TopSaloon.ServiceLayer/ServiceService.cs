@@ -34,6 +34,20 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<bool> result = new ApiResponse<bool>();
             try
             {
+                var GetAllServices = await unitOfWork.ServicesManager.GetAsync();
+                int GetValueOfLastposition = -1;
+                if (GetAllServices != null)
+                {
+                    var ser = GetAllServices.ToArray();
+                    if (ser.Count() > 0)
+                    {
+                        int tmp = GetAllServices.Count() - 1;
+                        GetValueOfLastposition = ser[tmp].position;
+                    }
+                   
+
+                }
+
                 Service newService = new Service();
                 newService.NameAR = model.NameAR;
                 newService.NameEN = model.NameEN;
@@ -41,6 +55,11 @@ namespace TopSaloon.ServiceLayer
                 newService.UserPath = model.UserPath;
                 newService.Time = model.Time;
                 newService.Price = model.Price;
+                newService.position = GetValueOfLastposition+1; 
+
+              
+
+
                 Service ServiceResult = await unitOfWork.ServicesManager.GetServiceByNameAR(model.NameAR);
                 if (ServiceResult == null)
                 {
@@ -125,6 +144,7 @@ namespace TopSaloon.ServiceLayer
                     service.NameEN = model.NameEN;
                     service.Price = model.Price;
                     service.Time = model.Time;
+                    service.position = model.Time;
                     service.AdminPath = model.AdminImagePath;
                     service.UserPath = model.UserImagePath;
 
@@ -173,7 +193,8 @@ namespace TopSaloon.ServiceLayer
                var services  = await unitOfWork.ServicesManager.GetAsync(b => b.isDeleted==false, includeProperties: "FeedBackQuestions");
                 if (services != null)
                 {
-                    result.Data = mapper.Map<List<ServiceDTO>>(services.ToList());
+                   var ser =  services.OrderBy(b => b.position);
+                    result.Data = mapper.Map<List<ServiceDTO>>(ser.ToList());
                     result.Succeeded = true;
                     return result;
                 }
@@ -218,5 +239,76 @@ namespace TopSaloon.ServiceLayer
             }
         }
 
+        public async Task<ApiResponse<List<ServiceDTO>>> ModifyService(ModifyService modifyService)
+        {
+            ApiResponse<List<ServiceDTO>> result = new ApiResponse<List<ServiceDTO>>();
+            try
+            {
+                var ServiceToDate = await unitOfWork.ServicesManager.GetByIdAsync(modifyService.ServiceId);
+                if(ServiceToDate != null)
+                {
+                    var serviceToReplace = await unitOfWork.ServicesManager.GetAsync(a => a.position == modifyService.newPosition); 
+                    if(serviceToReplace.FirstOrDefault()!=null)
+                    {
+                       
+                        ServiceToDate.position = modifyService.newPosition;
+                        var serviceReplace = serviceToReplace.FirstOrDefault();
+                        serviceReplace.position = modifyService.oldPosition;
+                      
+
+                      var Saves =   await unitOfWork.ServicesManager.UpdateAsync(ServiceToDate);
+                     var saveChanges =    await unitOfWork.ServicesManager.UpdateAsync(serviceReplace);
+
+                        await unitOfWork.SaveChangesAsync();
+                        
+
+                        if(saveChanges == true && Saves == true)
+                        {
+                            var GetLatest = await unitOfWork.ServicesManager.GetAsync();
+                            var list = GetLatest.ToList();
+                            if (list != null)
+                            {
+                                result.Succeeded = true;
+                                result.Data = mapper.Map<List<ServiceDTO>>(list);
+                                return result;
+                            }
+                            else
+                            {
+                                result.Succeeded = false;
+                                result.Errors.Add("Can not Get list of services ");
+                                return result;
+                            }
+                            
+                        }
+                        else
+
+                        {
+                            result.Succeeded = false;
+                            result.Errors.Add("Can not save changes of Services ");
+                            return result;
+                        }
+                    
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("Can not find the second Service ");
+                        return result;
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("cannot get any service ");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+        }
     }
 }
