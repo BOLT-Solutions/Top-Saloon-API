@@ -23,9 +23,10 @@ namespace TopSaloon.Repository.Common
 
         //static readonly string sheet = "TestSheet";
         GoogleCredential credential;
-       
 
-        public GoogleSheetsHelper() //Initialize google sheets API.
+       
+       
+    public GoogleSheetsHelper() //Initialize google sheets API.
         {
             using (var stream = new FileStream("topsaloon-1605782329463-e0653a0a3535.json", FileMode.Open, FileAccess.Read))
             {
@@ -45,14 +46,14 @@ namespace TopSaloon.Repository.Common
 
         public void CreateEntry(OrderToRecord GoogleSheetRecord)
         {
+           
             var range = "!A1:F3";
             var valueRange = new ValueRange();
             var oblist = new List<object>();
             valueRange.Range = range;
             valueRange.Values = new List<IList<object>> { oblist };
-
-
-           int RowsCount = ReadEntries(); // Fetch Rows Count Before Creation
+           
+            int RowsCount = ReadEntries(); // Fetch Rows Count Before Creation
 
             for (int i = 0; i < GoogleSheetRecord.Services.Count; i++)
             {
@@ -86,23 +87,136 @@ namespace TopSaloon.Repository.Common
                 var appendReponse = appendRequest.Execute();
 
             }
-
-
-            //define cell color
-            var userEnteredFormat = new CellFormat()
+            var userEnteredFormat =  new CellFormat();
+            string DayName = DateTime.Now.DayOfWeek.ToString();
+            if (DayName.Equals("Monday"))
             {
-                BackgroundColor = new Color()
+                userEnteredFormat = new CellFormat()
                 {
-                    Blue = 1,
-                    Red = 0,
-                    Green = 1,
-                    Alpha = 1
-                },
-                TextFormat = new TextFormat()
+
+                    BackgroundColor = new Color()
+                    {
+                        Red =(float) 0.074,
+                        Green = (float)0.38 ,
+                        Blue = (float)0.09 ,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if(DayName.Equals("Tuesday"))
+            {
+                userEnteredFormat = new CellFormat()
                 {
-                    Bold = true
-                }
-            };
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.48,
+                        Green = (float)0.082,
+                        Blue = (float)0.070,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Wednesday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.075,
+                        Green = (float)0.39,
+                        Blue = (float)0.48,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Thursday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.48,
+                        Green = (float)0.070,
+                        Blue = (float)0.09,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Friday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.07,
+                        Green = (float)0.48,
+                        Blue = (float)0.39,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Saturday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Blue = 0,
+                        Red = 1,
+                        Green = 1,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Sunday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.40,
+                        Green = (float)0.48,
+                        Blue = (float)0.070,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            //define cell color
+
             BatchUpdateSpreadsheetRequest bussr = new BatchUpdateSpreadsheetRequest();
 
            
@@ -144,17 +258,14 @@ namespace TopSaloon.Repository.Common
             IList<IList<object>> values = response.Values;
             if (values != null && values.Count > 0)
             {
-                //foreach (var row in values)
-                //{
-                //    // Print columns A to F, which correspond to indices 0 and 4.
-                //}   
+               
                 rowCount = values.Count;
                 return rowCount;
             }
             else
             {
                 return 0;
-                Console.WriteLine("No data found.");
+               
             }
         }
     }
