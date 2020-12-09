@@ -491,13 +491,13 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public ApiResponse<object> AddOrderToGoogleSheets(OrderToRecord GoogleSheetOrder)
+        public    ApiResponse<object> AddOrderToGoogleSheets(OrderToRecord GoogleSheetOrder)
         {
             ApiResponse<object> result = new ApiResponse<object>();
 
             var gsh = new GoogleSheetsHelper(); // Initialize Google Sheets Helper
-
-            gsh.CreateEntry(GoogleSheetOrder); // Create New google sheet row record
+            
+            gsh.CreateEntry(GoogleSheetOrder);  // Create New google sheet row record
             result.Succeeded = true;
             return result;
         }
@@ -592,6 +592,42 @@ namespace TopSaloon.ServiceLayer
                 if (completeorderlist != null)
                 {
                     result.Data = mapper.Map<List<CompleteOrderDTO>>(completeorderlist);
+                    result.Succeeded = true;
+                    return result;
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("Error fetching complete orders !");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                return result;
+            }
+        }
+        public async Task<ApiResponse<int>> getAllCompleteOrderRows()
+        {
+            var result = new ApiResponse<int>();
+
+            try
+            {
+                var Complete = await unitOfWork.CompleteOrdersManager.GetAsync();
+
+                List<CompleteOrder> completeorderlist = Complete.ToList();
+                int rowsToCount = 0; 
+
+                if (completeorderlist != null)
+                {
+                    for (int i =0; i<completeorderlist.Count; i++ )
+                    {
+                        var ids = completeorderlist[i].OrderServicesList.Split(',');
+                        rowsToCount += ids.Length; 
+                    }
+                    result.Data = rowsToCount; 
                     result.Succeeded = true;
                     return result;
                 }
