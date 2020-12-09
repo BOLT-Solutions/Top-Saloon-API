@@ -40,8 +40,9 @@ namespace TopSaloon.API.Controllers
         [HttpPost("GoogleSheets")]
         public async Task<IActionResult> GoogleSheets(OrderToRecord orderToRecord)
         {
-            return await AddItemResponseHandler(async () => service.AddOrderToGoogleSheets(orderToRecord));
+            return await AddItemResponseHandler(async () =>  service.AddOrderToGoogleSheets(orderToRecord));
         }
+       
 
         [HttpPut("CancelOrder")]
         public async Task<IActionResult> CancelOrder(string orderId)

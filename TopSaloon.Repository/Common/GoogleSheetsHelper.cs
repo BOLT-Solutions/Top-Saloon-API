@@ -6,6 +6,7 @@ using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Services;
 using System.IO;
 using TopSaloon;
+using System.Linq;
 
 namespace TopSaloon.Repository.Common
 {
@@ -17,12 +18,15 @@ namespace TopSaloon.Repository.Common
         static string ApplicationName = "TopSaloon";
 
         private readonly SheetsService _sheetsService;
-        private readonly string _spreadsheetId = "171QH0qSv_75dXz8GwNyY_pisAZIRMqNNzz65LN1zhbU";
-        static readonly string sheet = "Top-Saloon";
-        GoogleCredential credential;
-        
+        //private readonly string _spreadsheetId = "171QH0qSv_75dXz8GwNyY_pisAZIRMqNNzz65LN1zhbU";// Live Sheet
+        private readonly string _spreadsheetId = "19Vh8Nqbf1psGw_wL9n01Uxib3qhVJIf4eljzawKp4_I";// Test Sheet
 
-        public GoogleSheetsHelper() //Initialize google sheets API.
+        //static readonly string sheet = "TestSheet";
+        GoogleCredential credential;
+
+       
+       
+    public GoogleSheetsHelper() //Initialize google sheets API.
         {
             using (var stream = new FileStream("topsaloon-1605782329463-e0653a0a3535.json", FileMode.Open, FileAccess.Read))
             {
@@ -42,35 +46,226 @@ namespace TopSaloon.Repository.Common
 
         public void CreateEntry(OrderToRecord GoogleSheetRecord)
         {
-            var range = $"{sheet}!A:F";
+           
+            var range = "!A1:F3";
             var valueRange = new ValueRange();
             var oblist = new List<object>();
-            
-            valueRange.Values = new List<IList<object>> { oblist };
             valueRange.Range = range;
+            valueRange.Values = new List<IList<object>> { oblist };
+           
+            int RowsCount = ReadEntries(); // Fetch Rows Count Before Creation
 
             for (int i = 0; i < GoogleSheetRecord.Services.Count; i++)
             {
-                oblist.Clear();
                 if (i == 0)
                 {
                     oblist.Add(GoogleSheetRecord.CustomerNameAR);
                     oblist.Add(GoogleSheetRecord.BarberNameAR);
-                }
-                else
-                {
-                    oblist.Add(" ");
-                    oblist.Add(" ");
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceStatus);
+                  
                 }
 
-                oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
-                oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
-                oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
-                
- 
+                if(i>0 && GoogleSheetRecord.Services[i].ServiceNameAR != GoogleSheetRecord.Services[i-1].ServiceNameAR)
+                {
+                   
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceNameAR);
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServicePrice);
+                    oblist.Remove(GoogleSheetRecord.Services[i - 1].ServiceTime);
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceStatus);
+                    
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceStatus); 
+                }
+            
                 var appendRequest = _sheetsService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
                 appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
                 var appendReponse = appendRequest.Execute();
+
+            }
+            var userEnteredFormat =  new CellFormat();
+            string DayName = DateTime.Now.DayOfWeek.ToString();
+            if (DayName.Equals("Monday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red =(float) 0.074,
+                        Green = (float)0.38 ,
+                        Blue = (float)0.09 ,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if(DayName.Equals("Tuesday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.48,
+                        Green = (float)0.082,
+                        Blue = (float)0.070,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Wednesday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.075,
+                        Green = (float)0.39,
+                        Blue = (float)0.48,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Thursday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.48,
+                        Green = (float)0.070,
+                        Blue = (float)0.09,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Friday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.07,
+                        Green = (float)0.48,
+                        Blue = (float)0.39,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Saturday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Blue = 0,
+                        Red = 1,
+                        Green = 1,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            else if (DayName.Equals("Sunday"))
+            {
+                userEnteredFormat = new CellFormat()
+                {
+
+                    BackgroundColor = new Color()
+                    {
+                        Red = (float)0.40,
+                        Green = (float)0.48,
+                        Blue = (float)0.070,
+                        Alpha = 1
+                    },
+                    TextFormat = new TextFormat()
+                    {
+                        Bold = true
+                    }
+                };
+            }
+            //define cell color
+
+            BatchUpdateSpreadsheetRequest bussr = new BatchUpdateSpreadsheetRequest();
+
+           
+           
+            //create the update request for cells from the first row
+            var updateCellsRequest = new Request()
+            {
+
+                RepeatCell = new RepeatCellRequest()
+                {
+                    Range = new GridRange()
+                    {
+                        SheetId = 587278492,
+                        StartRowIndex = RowsCount,
+                        EndRowIndex = (GoogleSheetRecord.Services.Count + RowsCount),
+                        StartColumnIndex = 0,
+                        EndColumnIndex = 6
+                    },
+                    Cell = new CellData()
+                    {
+                        UserEnteredFormat = userEnteredFormat
+                    },
+                    Fields = "UserEnteredFormat(BackgroundColor,TextFormat)"
+                }
+            };
+            bussr.Requests = new List<Request>();
+            bussr.Requests.Add(updateCellsRequest);
+            var bur = _sheetsService.Spreadsheets.BatchUpdate(bussr, _spreadsheetId);
+            bur.Execute();
+        }
+
+        public int ReadEntries()
+        {
+            var range = "!A:F";
+            SpreadsheetsResource.ValuesResource.GetRequest request =
+                    _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
+            var rowCount = 0;
+            var response = request.Execute();
+            IList<IList<object>> values = response.Values;
+            if (values != null && values.Count > 0)
+            {
+               
+                rowCount = values.Count;
+                return rowCount;
+            }
+            else
+            {
+                return 0;
+               
             }
         }
     }
