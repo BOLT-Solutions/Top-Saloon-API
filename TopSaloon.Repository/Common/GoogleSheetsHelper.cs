@@ -21,6 +21,7 @@ namespace TopSaloon.Repository.Common
         //private readonly string _spreadsheetId = "171QH0qSv_75dXz8GwNyY_pisAZIRMqNNzz65LN1zhbU";// Live Sheet
         private readonly string _spreadsheetId = "19Vh8Nqbf1psGw_wL9n01Uxib3qhVJIf4eljzawKp4_I";// Test Sheet
 
+
         //static readonly string sheet = "TestSheet";
         GoogleCredential credential;
 
@@ -135,13 +136,8 @@ namespace TopSaloon.Repository.Common
                // oblist.Clear();
 
             }
-           
-
-
-            var appendRequest1 = _sheetsService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
-            appendRequest1.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-            var appendReponse1 = appendRequest1.Execute();
-            // oblist.Clear();
+         
+                
             var userEnteredFormat =  new CellFormat();
             string DayName = DateTime.Now.DayOfWeek.ToString();
             if (DayName.Equals("Monday"))

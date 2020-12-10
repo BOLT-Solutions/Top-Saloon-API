@@ -35,19 +35,21 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 var GetAllServices = await unitOfWork.ServicesManager.GetAsync();
-                int GetValueOfLastposition = -1;
-                if (GetAllServices != null)
+                
+                var ListService = GetAllServices.ToList();
+                
+                int maxValue = -1;
+               
+                for(int i=0; i< ListService.Count(); i++)
                 {
-                    var ser = GetAllServices.ToArray();
-                    if (ser.Count() > 0)
+                    if( ListService[i].position > maxValue)
                     {
-                        int tmp = GetAllServices.Count() - 1;
-                        GetValueOfLastposition = ser[tmp].position;
+                        maxValue = ListService[i].position;
+
                     }
                    
-
-                }
-
+                }    
+               
                 Service newService = new Service();
                 newService.NameAR = model.NameAR;
                 newService.NameEN = model.NameEN;
@@ -55,7 +57,7 @@ namespace TopSaloon.ServiceLayer
                 newService.UserPath = model.UserPath;
                 newService.Time = model.Time;
                 newService.Price = model.Price;
-                newService.position = GetValueOfLastposition+1; 
+                newService.position = maxValue+1; 
 
               
 
@@ -79,10 +81,32 @@ namespace TopSaloon.ServiceLayer
                         return result;
                     }
                 }
-                result.Succeeded = false;
-                result.Errors.Add("Service already exists !");
-                result.ErrorType = ErrorType.LogicalError;
-                return result;
+                else if (ServiceResult != null && ServiceResult.isDeleted == true)
+                {
+                    var createServiceResult = await unitOfWork.ServicesManager.CreateAsync(newService);
+                    await unitOfWork.SaveChangesAsync();
+                    if (createServiceResult != null)
+                    {
+                        result.Data = true;
+                        result.Succeeded = true;
+                        return result;
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("Failed to create Service !");
+                        result.ErrorType = ErrorType.LogicalError;
+                        return result;
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("Service already exists !");
+                    result.ErrorType = ErrorType.LogicalError;
+                    return result;
+                }
+                
             }
             catch (Exception ex)
             {
