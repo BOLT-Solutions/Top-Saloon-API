@@ -451,13 +451,11 @@ namespace TopSaloon.ServiceLayer
                     BarberLogin login = barberLoginsResult.FirstOrDefault();
 
 
+
                     if (login != null)
                     {
-                        DateTime dateTime = login.logoutDateTime.Value.Date;
 
-                     
-                        
-                        if (dateTime == null)
+                        if(login.logoutDateTime == null)
                         {
                             if (barberToEdit.Status == "Available")
                             {
@@ -484,13 +482,15 @@ namespace TopSaloon.ServiceLayer
                                 result.Errors.Add("Failed to update barber status !");
                                 return result;
                             }
-                    }
+                        }
                         else
                         {
                             result.Succeeded = false;
-                            result.Errors.Add("A Barber is already sign out");
+                            result.Errors.Add("A barber is already Sign Out !");
                             return result;
                         }
+                           
+
                 }
 
                       
