@@ -46,12 +46,14 @@ namespace TopSaloon.Repository.Common
 
         public void CreateEntry(OrderToRecord GoogleSheetRecord)
         {
-           
-            var range = "!A1:F3";
+
+            var range = "!A1:F1"; 
+
             var valueRange = new ValueRange();
             var oblist = new List<object>();
             valueRange.Range = range;
             valueRange.Values = new List<IList<object>> { oblist };
+            float totalServiceDone = 0; 
            
             int RowsCount = ReadEntries(); // Fetch Rows Count Before Creation
 
@@ -60,33 +62,86 @@ namespace TopSaloon.Repository.Common
                 if (i == 0)
                 {
                     oblist.Add(GoogleSheetRecord.CustomerNameAR);
+                    oblist.Add(GoogleSheetRecord.CustomerNameEN);
                     oblist.Add(GoogleSheetRecord.BarberNameAR);
-                    oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
-                    oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
-                    oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
-                    oblist.Add(GoogleSheetRecord.Services[i].ServiceStatus);
-                  
-                }
+                    oblist.Add(GoogleSheetRecord.BarberNameEN);
+                    oblist.Add(GoogleSheetRecord.OrderStartTime.Value.Date);
+                    oblist.Add(GoogleSheetRecord.OrderEndTime.Value.Date);
+                    oblist.Add(GoogleSheetRecord.OrderTotalAmount);
+                    oblist.Add(GoogleSheetRecord.DiscountPrice);
+                    oblist.Add(GoogleSheetRecord.DiscountRate);
+                    // shoud not be repeated 
 
-                if(i>0 && GoogleSheetRecord.Services[i].ServiceNameAR != GoogleSheetRecord.Services[i-1].ServiceNameAR)
-                {
-                   
-                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceNameAR);
-                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServicePrice);
-                    oblist.Remove(GoogleSheetRecord.Services[i - 1].ServiceTime);
-                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceStatus);
-                    
                     oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
-                    oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceNameEN);
                     oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
-                    oblist.Add(GoogleSheetRecord.Services[i].ServiceStatus); 
+                    oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
+
+
+                    if (GoogleSheetRecord.Services[i].ServiceStatus == true)
+                    {
+                        oblist.Add("Done");
+                        totalServiceDone += (float)GoogleSheetRecord.Services[i].ServicePrice; 
+                    }
+                    else if (GoogleSheetRecord.Services[i].ServiceStatus == false)
+                    {
+                        oblist.Add("Canceled");
+                    }
+
+                }
+               
+
+                if (i>0 && GoogleSheetRecord.Services[i].ServiceNameAR != GoogleSheetRecord.Services[i-1].ServiceNameAR)
+                {
+
+
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceNameAR);
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceNameEN);
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServiceTime);
+                    oblist.Remove(GoogleSheetRecord.Services[i-1].ServicePrice);
+                    if (GoogleSheetRecord.Services[i-1].ServiceStatus == true)
+                    {
+                        oblist.Remove("Done");
+                    }
+                    else if (GoogleSheetRecord.Services[i-1].ServiceStatus == false)
+                    {
+                        oblist.Remove("Canceled");
+                    }
+
+                    
+
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceNameAR);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceNameEN);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServiceTime);
+                    oblist.Add(GoogleSheetRecord.Services[i].ServicePrice);
+
+                   
+                    if (GoogleSheetRecord.Services[i].ServiceStatus == true)
+                    {
+                        oblist.Add("Done");
+                        totalServiceDone += (float)GoogleSheetRecord.Services[i].ServicePrice;
+
+                    }
+                    else if (GoogleSheetRecord.Services[i].ServiceStatus == false)
+                    {
+                        oblist.Add("Canceled");
+                    }
+                   
                 }
             
                 var appendRequest = _sheetsService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
                 appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
                 var appendReponse = appendRequest.Execute();
+               // oblist.Clear();
 
             }
+           
+
+
+            var appendRequest1 = _sheetsService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
+            appendRequest1.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+            var appendReponse1 = appendRequest1.Execute();
+            // oblist.Clear();
             var userEnteredFormat =  new CellFormat();
             string DayName = DateTime.Now.DayOfWeek.ToString();
             if (DayName.Equals("Monday"))
@@ -233,7 +288,7 @@ namespace TopSaloon.Repository.Common
                         StartRowIndex = RowsCount,
                         EndRowIndex = (GoogleSheetRecord.Services.Count + RowsCount),
                         StartColumnIndex = 0,
-                        EndColumnIndex = 6
+                        EndColumnIndex = 14
                     },
                     Cell = new CellData()
                     {
@@ -250,7 +305,7 @@ namespace TopSaloon.Repository.Common
 
         public int ReadEntries()
         {
-            var range = "!A:F";
+            var range = "!A:F1";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
             var rowCount = 0;

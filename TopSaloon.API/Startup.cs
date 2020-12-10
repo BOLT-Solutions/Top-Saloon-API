@@ -36,7 +36,7 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-BANDRAWY; Database=TOPSALOON;User ID=sa;Password=P@ssw0rd;"));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-MOTAZ\\SQLEXPRESS; Database=TOPSALOON;User ID=sa;Password=P@ssw0rd;"));
 
             //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALONTEST; User ID = sa; password = P@$$w0rd; ", builder =>
             //{
