@@ -66,8 +66,8 @@ namespace TopSaloon.Repository.Common
                     oblist.Add(GoogleSheetRecord.CustomerNameEN);
                     oblist.Add(GoogleSheetRecord.BarberNameAR);
                     oblist.Add(GoogleSheetRecord.BarberNameEN);
-                    oblist.Add(GoogleSheetRecord.OrderStartTime.Value.Date);
-                    oblist.Add(GoogleSheetRecord.OrderEndTime.Value.Date);
+                    oblist.Add(GoogleSheetRecord.OrderStartTime.Value.ToString("MM/dd/yyyy hh:mm tt"));
+                    oblist.Add(GoogleSheetRecord.OrderEndTime.Value.ToString("MM/dd/yyyy hh:mm tt"));
                     oblist.Add(GoogleSheetRecord.OrderTotalAmount);
                     oblist.Add(GoogleSheetRecord.DiscountPrice);
                     oblist.Add(GoogleSheetRecord.DiscountRate);
