@@ -332,6 +332,8 @@ namespace TopSaloon.ServiceLayer
             {
                 var orderToFetch = await unitOfWork.OrdersManager.GetAsync(o => o.Id == orderId, includeProperties: "OrderServices");
                 var order = orderToFetch.FirstOrDefault();
+                var orderToFinalize = new Order();
+                var orderToExcelExtract = order;
                 float totalAmountToExtract = 0; 
  
                 if (order != null)
@@ -340,8 +342,8 @@ namespace TopSaloon.ServiceLayer
                 
                     completeOrder.OrderServicesList = "";
                     
-                    var orderToExcelExtract = order; 
-                    order.OrderServices = order.OrderServices.Where(o => o.IsConfirmed == true).ToList(); // Filter confirmed services.
+                
+                   orderToFinalize.OrderServices  = order.OrderServices.Where(o => o.IsConfirmed == true).ToList(); // Filter confirmed services.
 
                     //Fetch customer and barber from order.
                     var customer = await unitOfWork.CustomersManager.GetByIdAsync(order.CustomerId);
@@ -352,9 +354,9 @@ namespace TopSaloon.ServiceLayer
 
                     completeOrder.OrderTotalAmount = 0;
                    
-                    for (int i = 0; i < order.OrderServices.Count; i++)
+                    for (int i = 0; i < orderToFinalize.OrderServices.Count; i++)
                     {
-                        completeOrder.OrderTotalAmount += order.OrderServices[i].Price;
+                        completeOrder.OrderTotalAmount += orderToFinalize.OrderServices[i].Price;
                     }
                     totalAmountToExtract =(float)completeOrder.OrderTotalAmount; 
 
@@ -376,7 +378,7 @@ namespace TopSaloon.ServiceLayer
                     //Fill complete order services list
 
                     List<OrderService> orderServicesHistory = new List<OrderService>();
-                    orderServicesHistory = order.OrderServices;
+                    orderServicesHistory = orderToFinalize.OrderServices;
 
                     List<ServicesToRecord> GoogleSheetServiceList = new List<ServicesToRecord>();
                    
