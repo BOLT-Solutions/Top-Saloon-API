@@ -144,11 +144,86 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 var order = await unitOfWork.OrdersManager.GetAsync(b => b.Id == Int32.Parse(orderId), 0, 0, null, includeProperties: "OrderServices");
-                Order OrderToUpdate = order.FirstOrDefault(); 
+                Order OrderToUpdate = order.FirstOrDefault();
+
                 if (OrderToUpdate != null)
                 {
+
+                    var customer = await unitOfWork.CustomersManager.GetByIdAsync(OrderToUpdate.CustomerId);
+                    var barberQueue = await unitOfWork.BarbersQueuesManager.GetByIdAsync(OrderToUpdate.BarberQueueId) ;
+                    var barber = await unitOfWork.BarbersManager.GetByIdAsync(barberQueue.BarberId);
+
+                    CompleteOrder completeOrder = new CompleteOrder();
+
+                    completeOrder.OrderTotalAmount = completeOrder.OrderTotalAmount - (completeOrder.OrderTotalAmount * (OrderToUpdate.DiscountRate / 100));
+
+                    completeOrder.OrderServicesList = "";
+
+                    completeOrder.BarberId = barber.Id;
+                    completeOrder.OrderDateTime = OrderToUpdate.OrderDate;
+                    completeOrder.OrderFinishTime = OrderToUpdate.FinishTime;
+                    completeOrder.CustomerId = customer.Id;
+                    completeOrder.CustomerNameEN = customer.Name;
+                    completeOrder.CustomerNameAR = customer.Name;
+                    completeOrder.BarberNameAR = barber.NameAR;
+                    completeOrder.BarberNameEN = barber.NameEN;
+                    completeOrder.CustomerWaitingTimeInMinutes = OrderToUpdate.WaitingTimeInMinutes;
+                    completeOrder.Status = "Canceled";
+                    completeOrder.TotalTimeSpent = OrderToUpdate.TotalServicesWaitingTime;
+                    completeOrder.OrderTotalAmount = 0;
+
+                    for (int i = 0; i < order.FirstOrDefault().OrderServices.Count; i++)
+                    {
+                        completeOrder.OrderTotalAmount += order.FirstOrDefault().OrderServices[i].Price;
+                    }
+
+                    for (int i = 0; i < order.FirstOrDefault().OrderServices.Count; i++)
+                    {
+                        completeOrder.OrderServicesList = completeOrder.OrderServicesList + order.FirstOrDefault().OrderServices[i].ServiceId + ",";
+
+
+                    }
+
+                    List<ServicesToRecord> GoogleSheetServiceList = new List<ServicesToRecord>();
+
+
+                    for (int i = 0; i < order.FirstOrDefault().OrderServices.Count; i++)
+                    {
+                        ServicesToRecord GoogleSheetServiceItem = new ServicesToRecord();
+                        GoogleSheetServiceItem.ServiceNameAR = order.FirstOrDefault().OrderServices[i].NameAR;
+                        GoogleSheetServiceItem.ServiceNameEN = order.FirstOrDefault().OrderServices[i].NameEN;
+                        GoogleSheetServiceItem.ServiceTime = order.FirstOrDefault().OrderServices[i].Time;
+                        GoogleSheetServiceItem.ServicePrice = order.FirstOrDefault().OrderServices[i].Price;
+                        GoogleSheetServiceItem.ServiceStatus = order.FirstOrDefault().OrderServices[i].IsConfirmed;
+                        GoogleSheetServiceList.Add(GoogleSheetServiceItem);
+
+                    }
+
+                    var info = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+                    DateTimeOffset localServerTime = DateTimeOffset.Now;
+                    DateTimeOffset localTime = TimeZoneInfo.ConvertTime(localServerTime, info);
+
+
+
+                    OrderToRecord GoogleSheetOrder = new OrderToRecord();
+                    GoogleSheetOrder.BarberNameAR = completeOrder.BarberNameAR;
+                    GoogleSheetOrder.BarberNameEN = completeOrder.BarberNameEN;
+                    GoogleSheetOrder.CustomerNameAR = completeOrder.CustomerNameAR;
+                    GoogleSheetOrder.CustomerNameEN = completeOrder.CustomerNameEN;
+                    GoogleSheetOrder.DiscountRate = order.FirstOrDefault().DiscountRate;
+                    GoogleSheetOrder.OrderTotalAmount = completeOrder.OrderTotalAmount;
+                    GoogleSheetOrder.OrderEndTime = localTime.DateTime;
+                    GoogleSheetOrder.OrderStartTime = order.FirstOrDefault().OrderDate;
+                    GoogleSheetOrder.DiscountPrice = 0;
+
+                    GoogleSheetOrder.Services = GoogleSheetServiceList;
+                    AddOrderToGoogleSheets(GoogleSheetOrder);
+
+
+
+
                     //Fetch barber queue from order.
-                   var barberQueueToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == OrderToUpdate.BarberQueueId, includeProperties: "Orders");
+                    var barberQueueToFetch = await unitOfWork.BarbersQueuesManager.GetAsync(q => q.Id == OrderToUpdate.BarberQueueId, includeProperties: "Orders");
                     var queue = barberQueueToFetch.FirstOrDefault();
 
                     if(queue != null) { 
@@ -358,6 +433,7 @@ namespace TopSaloon.ServiceLayer
                     {
                         completeOrder.OrderTotalAmount += orderToFinalize.OrderServices[i].Price;
                     }
+
                     totalAmountToExtract =(float)completeOrder.OrderTotalAmount; 
 
                     completeOrder.OrderTotalAmount = completeOrder.OrderTotalAmount - (completeOrder.OrderTotalAmount * (order.DiscountRate / 100));
@@ -388,6 +464,7 @@ namespace TopSaloon.ServiceLayer
 
                        
                     }
+
                     //construct the list of the excel 
                     for (int i = 0; i < orderToExcelExtract.OrderServices.Count; i++)
                     {
@@ -508,8 +585,6 @@ namespace TopSaloon.ServiceLayer
             result.Succeeded = true;
             return result;
         }
-
-
 
         public async Task<ApiResponse<bool>> SetQueueWaitingTimes()
         {
