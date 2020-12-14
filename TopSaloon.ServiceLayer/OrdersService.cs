@@ -460,7 +460,12 @@ namespace TopSaloon.ServiceLayer
                     }
 
                     //gets the egypt time to get the final time 
-                    
+                    var info = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+                    DateTimeOffset localServerTime = DateTimeOffset.Now;
+                    DateTimeOffset localTime = TimeZoneInfo.ConvertTime(localServerTime, info);
+                   
+
+
                     //var googleSheetsRecordResult = await AddOrderToGoogleSheets(completeOrder);
                     OrderToRecord GoogleSheetOrder = new OrderToRecord();
                     GoogleSheetOrder.BarberNameAR = completeOrder.BarberNameAR;
@@ -469,8 +474,8 @@ namespace TopSaloon.ServiceLayer
                     GoogleSheetOrder.CustomerNameEN = completeOrder.CustomerNameEN;
                     GoogleSheetOrder.DiscountRate = orderToExcelExtract.DiscountRate;
                     GoogleSheetOrder.OrderTotalAmount = totalAmountToExtract;
-                    GoogleSheetOrder.OrderEndTime = orderToExcelExtract.FinishTime.Value.Date;
-                    GoogleSheetOrder.OrderStartTime = orderToExcelExtract.OrderDate.Value.Date;
+                    GoogleSheetOrder.OrderEndTime = localTime.DateTime;
+                    GoogleSheetOrder.OrderStartTime = orderToExcelExtract.OrderDate;
                     GoogleSheetOrder.DiscountPrice = totalAmountToExtract - completeOrder.OrderTotalAmount; 
                     
                     GoogleSheetOrder.Services = GoogleSheetServiceList;
