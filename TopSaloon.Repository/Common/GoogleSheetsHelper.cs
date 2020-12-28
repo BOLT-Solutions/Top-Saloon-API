@@ -19,7 +19,10 @@ namespace TopSaloon.Repository.Common
 
         private readonly SheetsService _sheetsService;
         //private readonly string _spreadsheetId = "171QH0qSv_75dXz8GwNyY_pisAZIRMqNNzz65LN1zhbU";// Live Sheet
-        private readonly string _spreadsheetId = "19Vh8Nqbf1psGw_wL9n01Uxib3qhVJIf4eljzawKp4_I";// Test Sheet
+      //  private readonly string _spreadsheetId = "19Vh8Nqbf1psGw_wL9n01Uxib3qhVJIf4eljzawKp4_I";// Test Sheet // active  
+        //1CvjhZViJy-fJSTbEA3Yh9zJRA7WdgnuLz1fFrnIF1XE
+       private readonly string _spreadsheetId = "1CvjhZViJy-fJSTbEA3Yh9zJRA7WdgnuLz1fFrnIF1XE";// Test Sheet // new test // 28/12
+
 
 
         //static readonly string sheet = "TestSheet";
@@ -278,9 +281,10 @@ namespace TopSaloon.Repository.Common
 
                 RepeatCell = new RepeatCellRequest()
                 {
+                    //sheetId =  587278492, 
                     Range = new GridRange()
                     {
-                        SheetId = 587278492,
+                        SheetId = 0,
                         StartRowIndex = RowsCount,
                         EndRowIndex = (GoogleSheetRecord.Services.Count + RowsCount),
                         StartColumnIndex = 0,
