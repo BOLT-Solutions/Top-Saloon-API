@@ -278,9 +278,10 @@ namespace TopSaloon.Repository.Common
 
                 RepeatCell = new RepeatCellRequest()
                 {
+                    //sheetId =  587278492, 
                     Range = new GridRange()
                     {
-                        SheetId = 587278492,
+                        SheetId = 0,
                         StartRowIndex = RowsCount,
                         EndRowIndex = (GoogleSheetRecord.Services.Count + RowsCount),
                         StartColumnIndex = 0,

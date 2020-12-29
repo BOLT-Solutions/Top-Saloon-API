@@ -122,7 +122,73 @@ namespace TopSaloon.ServiceLayer
             {
                 int serviceId = Int32.Parse(ServiceId);
                 var service = await unitOfWork.ServicesManager.GetByIdAsync(serviceId);
+                
+                var GetList = await unitOfWork.ServicesManager.GetAsync(b => b.position > service.position && b.isDeleted == false);
+              
+                var serviceResult = await unitOfWork.ServicesManager.UpdateAsync(service);
+
+                var listoFservices = GetList.ToList();
+
+
+                if(listoFservices !=null)
+                {
+                    service.position = -1;
+                    service.isDeleted = true;
+                    for (int i = service.position+1; i <= listoFservices.Count()-1; i++ )
+                    {
+                        listoFservices[i].position = listoFservices[i].position - 1; 
+                    }
+                    var updateQuery = await unitOfWork.ServicesManager.UpdateAsync(service);
+                    var ExecuteQuery = await unitOfWork.SaveChangesAsync();
+                    if(ExecuteQuery)
+                    {
+                        result.Data = true;
+                        result.Succeeded = true;
+                        return result;
+                    }
+                    else
+
+                    {
+                        result.Succeeded = false;
+                        result.Errors.Add("cann Change list");
+
+                        return result;
+                    }
+                }
+                else
+                {
+                    result.Succeeded = false;
+                    result.Errors.Add("cann not get list");
+                   
+                    return result;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                result.Succeeded = false;
+                result.Errors.Add(ex.Message);
+                result.ErrorType = ErrorType.SystemError;
+                return result;
+            }
+        }
+
+
+
+
+
+
+
+
+        public async Task<ApiResponse<bool>> Deleteservice2(string ServiceId)
+        {
+            ApiResponse<bool> result = new ApiResponse<bool>();
+            try
+            {
+                int serviceId = Int32.Parse(ServiceId);
+                var service = await unitOfWork.ServicesManager.GetByIdAsync(serviceId);
                 service.isDeleted = true;
+                service.position = -1;
                 var serviceResult = await unitOfWork.ServicesManager.UpdateAsync(service);
                 if (serviceResult == true)
                 {
@@ -131,6 +197,58 @@ namespace TopSaloon.ServiceLayer
                     {
                         result.Data = true;
                         result.Succeeded = true;
+                        var allServices = await unitOfWork.ServicesManager.GetAsync();// gets all services and order it
+                        var deletedServices = await unitOfWork.ServicesManager.GetAsync(a => a.isDeleted == true);
+                        int negativeCount = deletedServices.Count();
+                        allServices = allServices.OrderBy(a => a.position);
+                        List<Service> services = allServices.ToList();
+                        int referencePosition = 0;
+                        bool ZeroExist = false; 
+                        for (int i = negativeCount; i <= services.Count-negativeCount; i++)
+                        {
+                            
+
+                            if (services[i].position != referencePosition)
+                            {
+                                if (services[i].position == 0)
+                                {
+                                    services[i].position = referencePosition;
+                                    ZeroExist = true;
+                                }
+                                else
+                                {
+                                    if (!ZeroExist)
+                                    {
+                                        services[i].position = referencePosition;
+                                        ZeroExist = true;
+
+                                    }
+                                    else
+                                    {
+                                        services[i].position = referencePosition ;
+
+                                    }
+
+                                }
+                                
+                               
+                                referencePosition++;
+                                
+                            }
+                            else if (services[i].position == referencePosition)
+                            {
+                                if(services[i].position == 0 )
+                                {
+                                    ZeroExist = true;
+                                }
+                                referencePosition = services[i].position;
+                                
+                             }
+                           
+
+
+                        }
+                         await unitOfWork.SaveChangesAsync(); 
                         return result;
                     }
                     else
@@ -268,29 +386,53 @@ namespace TopSaloon.ServiceLayer
             ApiResponse<List<ServiceDTO>> result = new ApiResponse<List<ServiceDTO>>();
             try
             {
-                var ServiceToDate = await unitOfWork.ServicesManager.GetByIdAsync(modifyService.ServiceId);
-                if(ServiceToDate != null)
+                var serviceToupdatePosition = await unitOfWork.ServicesManager.GetByIdAsync(modifyService.ServiceId); // gets service old position 
+                var allServices = await unitOfWork.ServicesManager.GetAsync(a => a.isDeleted == false);  // gets all services and order it 
+                allServices = allServices.OrderBy(a => a.position);
+                List<Service> services = new List<Service>(); 
+                if (serviceToupdatePosition != null)
                 {
-                    var serviceToReplace = await unitOfWork.ServicesManager.GetAsync(a => a.position == modifyService.newPosition); 
-                    if(serviceToReplace.FirstOrDefault()!=null)
+                     services = allServices.ToList();
+                    // dragged down
+                    if (modifyService.newPosition > modifyService.oldPosition)
                     {
-                       
-                        ServiceToDate.position = modifyService.newPosition;
-                        var serviceReplace = serviceToReplace.FirstOrDefault();
-                        serviceReplace.position = modifyService.oldPosition;
-                      
+                        services[modifyService.oldPosition].position = modifyService.newPosition;
+                        // int serviceStopcondition = services.Count-(modifyService.newPosition - mod) ;
 
-                      var Saves =   await unitOfWork.ServicesManager.UpdateAsync(ServiceToDate);
-                     var saveChanges =    await unitOfWork.ServicesManager.UpdateAsync(serviceReplace);
 
-                        await unitOfWork.SaveChangesAsync();
-                        
-
-                        if(saveChanges == true && Saves == true)
+                        for (int i = modifyService.oldPosition + 1; i <= modifyService.newPosition; i++)
                         {
+                            services[i].position = services[i].position - 1;
+
+                        }
+
+                    }
+                    //draged up
+                    else if (modifyService.newPosition < modifyService.oldPosition)
+                    {
+                        services[modifyService.oldPosition].position = modifyService.newPosition;
+
+
+                        for (int i = modifyService.newPosition; i < modifyService.oldPosition; i++)
+                        {
+
+
+                            services[i].position = services[i].position + 1;
+
+
+
+
+                        }
+                    }
+                
+               //  var lol = mapper.Map<Service>(services); 
+               //  var Saves =   await unitOfWork.ServicesManager.UpdateAsync(lol);
+                var saved =  await unitOfWork.SaveChangesAsync();
+                if(saved) 
+                {
                             var GetLatest = await unitOfWork.ServicesManager.GetAsync();
                             var list = GetLatest.ToList();
-                            if (list != null)
+                  if (list != null)
                             {
                                 result.Succeeded = true;
                                 result.Data = mapper.Map<List<ServiceDTO>>(list);
@@ -305,20 +447,14 @@ namespace TopSaloon.ServiceLayer
                             
                         }
                         else
-
                         {
                             result.Succeeded = false;
                             result.Errors.Add("Can not save changes of Services ");
                             return result;
                         }
                     
-                    }
-                    else
-                    {
-                        result.Succeeded = false;
-                        result.Errors.Add("Can not find the second Service ");
-                        return result;
-                    }
+                    
+                  
                 }
                 else
                 {
