@@ -36,17 +36,16 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=138.201.213.62\\SQL2019; Database=TOPSALON;User ID=sa;Password=P@$$w0rd;"));
+            //   services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-MOUSHTAHA\\SQLEXPRESS; Database=TOPSALONBACKUP;User ID=sa;Password=P@ssw0rd;"));
 
-            //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALONTEST; User ID = sa; password = P@$$w0rd; ", builder =>
-            //{
-            //    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
-            //}));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
+            {
+                builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
+            }));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddUserManager<ApplicationUserManager>();
-
 
 
             services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
@@ -57,23 +56,6 @@ namespace TopSaloon.API
                        .DisallowCredentials();
 
             }));
-
-            //services.AddCors(options =>
-            //    options.AddDefaultPolicy(builder =>
-            //        builder.AllowAnyOrigin()
-            //        .AllowAnyMethod()
-            //        .AllowAnyHeader()));
-
-            //services.AddCors(options =>
-            //   options.AddDefaultPolicy(builder =>
-            //       builder.WithOrigins("http://adminsalon.boltsmartsolutions.com",
-            //                           "https://adminsalon.boltsmartsolutions.com",
-            //                           "http://usersalon.boltsmartsolutions.com",
-            //                           "https://usersalon.boltsmartsolutions.com")
-            //       .WithMethods("POST", "GET", "PUT")
-            //       .WithHeaders("*")
-            //       .AllowCredentials()
-            //     ));
 
             services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -107,29 +89,7 @@ namespace TopSaloon.API
 
             app.UseCors("MyPolicy");
 
-
-            // app.UseCors(policy => policy
-            // .AllowAnyOrigin()
-            //.AllowAnyHeader()
-            //.AllowAnyMethod()
-            //);
-
-
-            //app.UseCors(policy => policy
-            //   .WithOrigins("http://adminsalon.boltsmartsolutions.com",
-            //                "https://adminsalon.boltsmartsolutions.com",
-            //                "http://usersalon.boltsmartsolutions.com",
-            //                "https://usersalon.boltsmartsolutions.com")
-            //   .WithMethods("POST", "GET", "PUT")
-            //   .WithHeaders("*")
-            //   .AllowCredentials()
-            // );
-
-
             app.UseRouting();
-
-            //Remove when publishing .
-           // app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
