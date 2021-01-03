@@ -56,29 +56,29 @@ namespace TopSaloon.API.Controllers
             return await GetResponseHandler(async () => await service.GetTotalAmountOfCostPerDay());
         }
 
-        [HttpGet("GetTotalServiceCostByPeriod/{filter}")]
+        [HttpPost("GetTotalServiceCostByPeriod")]
 
-        public async Task<IActionResult> GetTotalServiceCost(string filter)
+        public async Task<IActionResult> GetTotalServiceCost(DateRangeDTO dateRange)
         {
-            return await GetResponseHandler(async () => await service.GetTotalServiceCost(filter));
+            return await GetResponseHandler(async () => await service.GetTotalServiceCost(dateRange));
         }
-        [HttpGet("GetTotalNumberCustomerByPeriod/{filter}")]
+        [HttpPost("GetTotalNumberCustomerByPeriod")]
 
-        public async Task<IActionResult> GetTotalNumberCustomer(string filter)
+        public async Task<IActionResult> GetTotalNumberCustomer(DateRangeDTO dateRange)
         {
-            return await GetResponseHandler(async () => await service.GetTotalNumberCustomer(filter));
+            return await GetResponseHandler(async () => await service.GetTotalNumberCustomer(dateRange));
         }
-        [HttpGet("GetAverageOfWaitingTimeByPeriod/{filter}")]
+        [HttpPost("GetAverageOfWaitingTimeByPeriod")]
 
-        public async Task<IActionResult> GetAverageOfWaitingTime(string filter)
+        public async Task<IActionResult> GetAverageOfWaitingTime(DateRangeDTO dateRange)
         {
-            return await GetResponseHandler(async () => await service.GetAverageOfWaitingTime(filter));
+            return await GetResponseHandler(async () => await service.GetAverageOfWaitingTime(dateRange));
         }
-        [HttpGet("GetNumberOfSignedInBarbersByPeriod/{filter}")]
+        [HttpPost("GetNumberOfSignedInBarbersByPeriod")]
 
-        public async Task<IActionResult> GetNumberOfSignedInBarbers(string filter)
+        public async Task<IActionResult> GetNumberOfSignedInBarbers(DateRangeDTO dateRange)
         {
-            return await GetResponseHandler(async () => await service.GetNumberOfSignedInBarbers(filter));
+            return await GetResponseHandler(async () => await service.GetNumberOfSignedInBarbers(dateRange));
         }
     }
 }

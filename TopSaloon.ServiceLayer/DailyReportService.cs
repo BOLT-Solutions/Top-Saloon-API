@@ -96,17 +96,12 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object
-                string filter = "LastWeek"; 
                 var myday = DateTime.Today ;
                 int day = myday.Day;
                 int month = myday.Month;
                 int year = myday.Year;
-                int lollll = DateTime.DaysInMonth(year, month - 1);
-                // get the past date 
-                if (filter=="LastWeek")
-                { 
-
-                }
+              
+            
                
                 var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date >= myday.Date);
                 if (CO != null)
@@ -188,7 +183,6 @@ namespace TopSaloon.ServiceLayer
                 //complete order object
                 var myday = DateTime.Today;
 
-                //var CO = await unitOfWork.DailyReportsManager.GetSigndInbarbers();
                 var CO = await unitOfWork.BarberLoginsManager.GetSignedInbarbers();
 
                 if (CO != 0)
@@ -284,7 +278,7 @@ namespace TopSaloon.ServiceLayer
         /// per given date
         /// 
 
-        public async Task<ApiResponse<int>> GetTotalNumberCustomer(string filter)
+        public async Task<ApiResponse<int>> GetTotalNumberCustomer(DateRangeDTO dateRange)
         {
 
             ApiResponse<int> result = new ApiResponse<int>();
@@ -292,10 +286,9 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object 
-                var myday = DateTime.Now;
-                var lastdate = CalcDate(filter);
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date > lastdate.Date && A.OrderDateTime.Value.Date < DateTime.Now.Date);
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date <= dateRange.EndDate.Date && A.OrderDateTime.Value.Date >= dateRange.StartDate.Date);
 
+                var lol = dateRange.EndDate.Date;
                 List<CompleteOrder> completeOrdersList = CO.ToList();
 
                 if (CO != null)
@@ -320,7 +313,7 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public async Task<ApiResponse<int>> GetTotalServiceCost(string filter)
+        public async Task<ApiResponse<int>> GetTotalServiceCost(DateRangeDTO dateRange)
         {
 
             ApiResponse<int> result = new ApiResponse<int>();
@@ -328,10 +321,8 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object
-                var myday = DateTime.Now;
-                var lastdate = CalcDate(filter); 
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date <= dateRange.EndDate.Date && A.OrderDateTime.Value.Date >= dateRange.StartDate.Date);
 
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date > lastdate.Date && A.OrderDateTime.Value.Date < DateTime.Now.Date);
                 if (CO != null)
                 {
                     int total = 0;
@@ -360,7 +351,7 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public async Task<ApiResponse<float>> GetAverageOfWaitingTime(string filter)
+        public async Task<ApiResponse<float>> GetAverageOfWaitingTime(DateRangeDTO dateRange)
         {
 
             ApiResponse<float> result = new ApiResponse<float>();
@@ -368,11 +359,10 @@ namespace TopSaloon.ServiceLayer
             try
             {
                 //complete order object
-               var myday = DateTime.Now;
-               var  lastdate = CalcDate(filter);
 
-                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date > lastdate.Date && A.OrderDateTime.Value.Date < DateTime.Now.Date);
-                
+
+                var CO = await unitOfWork.CompleteOrdersManager.GetAsync(A => A.OrderDateTime.Value.Date <= dateRange.EndDate.Date && A.OrderDateTime.Value.Date >= dateRange.StartDate.Date);
+
                 if (CO != null)
                 {
                     var COList = CO.ToList();
@@ -405,17 +395,14 @@ namespace TopSaloon.ServiceLayer
                 return result;
             }
         }
-        public async Task<ApiResponse<int>> GetNumberOfSignedInBarbers(string filter)
+        public async Task<ApiResponse<int>> GetNumberOfSignedInBarbers(DateRangeDTO dateRange)
         {
 
             ApiResponse<int> result = new ApiResponse<int>();
 
             try
             {
-                //complete order object
-                var myday = DateTime.Now;
-                var lastdate = CalcDate(filter); 
-                var CO = await unitOfWork.BarberLoginsManager.GetSignedInbarbers(lastdate);
+                var CO = await unitOfWork.BarberLoginsManager.GetSignedInbarbers(dateRange);
 
                 if (CO != 0)
                 {
@@ -439,51 +426,6 @@ namespace TopSaloon.ServiceLayer
                 result.Errors.Add(ex.Message);
                 return result;
             }
-        }
-
-        //helper
-        private DateTime CalcDate(string filter )
-        {
-            var myday = DateTime.Now;
-            int day = myday.Day;
-            int month = myday.Month;
-            int year = myday.Year;
-            var lastdate = new DateTime();
-
-            if (filter == "lastweek")
-            {
-                if (day > 7)
-                {
-                    lastdate = new DateTime(year, month, day - 7);
-                }
-                else
-                {
-                    int ndays = DateTime.DaysInMonth(year, month - 1) - day;
-                    lastdate = new DateTime(year, month - 1, ndays);
-                }
-
-            }
-            else if (filter == "lastmonth")
-            {
-                bool leap = false;
-                leap = DateTime.IsLeapYear(year);
-                if (month == 2)
-                {
-                    if (leap)
-                    {
-                        day = 29;
-                    }
-                    else { day = 28; }
-                }
-                lastdate = new DateTime(year, month - 1, day);
-
-            }
-            else if (filter == "lastyear")
-            {
-                lastdate = new DateTime(year - 1, month, day);
-
-            }
-            return lastdate.Date; 
         }
     }
 }
