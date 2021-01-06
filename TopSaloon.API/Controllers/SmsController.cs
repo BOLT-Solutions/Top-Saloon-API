@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading.Tasks;
 using TopSaloon.API.Controllers.Common;
 using TopSaloon.DTOs.Models;
@@ -31,5 +32,21 @@ namespace TopSaloon.API.Controllers
             return await EditItemResponseHandler(async () => await service.EditSMS(model));
         }
 
+
+        [HttpPost("SendSMS")]
+        public async Task<IActionResult> SendSMS(SendSMSDTO sendSMSDTO)
+        {
+            return await AddItemResponseHandler(async () => await service.SendSMS(sendSMSDTO));
+        }
+        [HttpGet("GetNumberOfAvailableSMS")]
+        public async Task<IActionResult> GetNumberOfAvailableSMS()
+        {
+            return await GetResponseHandler(async () => await service.CheckCredit());
+        }
+        [HttpPost("SendSMSWithDLR")]
+        public async Task<IActionResult> SendSMSWithDLR(SendSMSDTO sendSMSDTO)
+        {
+            return await AddItemResponseHandler(async () => await service.SendSMSWithDLR(sendSMSDTO));
+        }
     }
 }
