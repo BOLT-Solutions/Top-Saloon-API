@@ -409,8 +409,19 @@ namespace TopSaloon.ServiceLayer
                 var order = orderToFetch.FirstOrDefault();
                 var orderToFinalize = new Order();
                 var orderToExcelExtract = order;
-                float totalAmountToExtract = 0; 
- 
+                float totalAmountToExtract = 0;
+                var SMS = new SmsService(unitOfWork,config);
+                SendSMSDTO sendSMS = new SendSMSDTO();
+                sendSMS.CustomerNumber = order.CustomerMobile;
+                sendSMS.orderId = orderId;
+                if (sendSMS.CustomerNumber != null)
+                {
+                    
+                    
+                    var SendSMS = await SMS.SendSMS(sendSMS);
+
+                }
+
                 if (order != null)
                 {
                     CompleteOrder completeOrder = new CompleteOrder();

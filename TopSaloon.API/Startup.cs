@@ -36,12 +36,12 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            //   services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-MOUSHTAHA\\SQLEXPRESS; Database=TOPSALONBACKUP;User ID=sa;Password=P@ssw0rd;"));
+         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-BANDRAWY; Database=TOPSALOON;User ID=sa;Password=P@ssw0rd;"));
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
-            {
-                builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
-            }));
+            //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
+            //{
+            //    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
+            //}));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
