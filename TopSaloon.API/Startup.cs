@@ -26,6 +26,8 @@ namespace TopSaloon.API
     public class Startup
     {
 
+        readonly string AllowSpecificOrigins = "_AllowSpecificOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -36,26 +38,28 @@ namespace TopSaloon.API
         public void ConfigureServices(IServiceCollection services)
         {
 
-         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=BOLT-BANDRAWY; Database=TOPSALOON;User ID=sa;Password=P@ssw0rd;"));
-
-            //services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 138.201.213.62\\SQL2019; Database = TOPSALON; User ID = sa; password = P@$$w0rd; ", builder =>
-            //{
-            //    builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
-            //}));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server = 162.214.152.59; Database = TOPSALON; User ID = sa; password = B0lt$$_18o2;", builder =>
+            {
+                builder.EnableRetryOnFailure(2, TimeSpan.FromSeconds(10), null);
+            }));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddUserManager<ApplicationUserManager>();
 
 
-            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            services.AddCors(options =>
             {
-                builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .DisallowCredentials();
+                options.AddPolicy(name: AllowSpecificOrigins,
+                             builder =>
+                             {
+                                 builder.WithOrigins("https://topsalon-user.boltsmartsolutions.com", "https://topsalon-admin.boltsmartsolutions.com", "http://topsalon-user.boltsmartsolutions.com", "http://topsalon-admin.boltsmartsolutions.com")
+                                 .AllowAnyMethod()
+                                 .AllowAnyHeader()
+                                 .AllowCredentials(); ;
+                             });
+            });
 
-            }));
 
             services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -78,7 +82,7 @@ namespace TopSaloon.API
 
             app.UseDeveloperExceptionPage();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseSwagger();
 
@@ -87,7 +91,7 @@ namespace TopSaloon.API
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
-            app.UseCors("MyPolicy");
+            app.UseCors(AllowSpecificOrigins);
 
             app.UseRouting();
 
@@ -96,5 +100,6 @@ namespace TopSaloon.API
                 endpoints.MapControllers();
             });
         }
+
     }
 }

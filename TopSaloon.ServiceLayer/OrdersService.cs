@@ -418,7 +418,7 @@ namespace TopSaloon.ServiceLayer
                 {
                     
                     
-                    var SendSMS = await SMS.SendSMS(sendSMS);
+              //      var SendSMS = await SMS.SendSMS(sendSMS);
 
                 }
 
