@@ -32,7 +32,7 @@ namespace TopSaloon.API.Controllers
         }
 
 
-        [HttpPut("SetOrderService")]
+        [HttpPost("SetOrderService")]
         public async Task<IActionResult> SetOrderService(int orderServiceId)
         {
             return await EditItemResponseHandler(async () => await service.SetOrderService(orderServiceId));
@@ -44,7 +44,7 @@ namespace TopSaloon.API.Controllers
         }
        
 
-        [HttpPut("CancelOrder")]
+        [HttpPost("CancelOrder")]
         public async Task<IActionResult> CancelOrder(string orderId)
         {
             return await EditItemResponseHandler(async () => await service.CancelOrder(orderId));
@@ -54,7 +54,7 @@ namespace TopSaloon.API.Controllers
         {
             return await GetResponseHandler(async () => await service.FinalizeOrder(id));
         }
-        [HttpPut("ConfirmOrderServices")]
+        [HttpPost("ConfirmOrderServices")]
         public async Task<IActionResult> ConfirmOrderServices(List<OrderServiceDTO> orderServices)
         {
             return await EditItemResponseHandler(async () => await service.ConfirmOrderServices(orderServices));

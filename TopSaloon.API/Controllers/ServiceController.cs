@@ -27,7 +27,7 @@ namespace TopSalon.API.Controllers
             return await AddItemResponseHandler(async () => await service.Deleteservice(ID));
         }
         
-        [HttpPut("EditService")]
+        [HttpPost("EditService")]
         public async Task<IActionResult> EditService(ServiceModelDTO model)
         {
             return await EditItemResponseHandler(async () => await service.EditService(model));
