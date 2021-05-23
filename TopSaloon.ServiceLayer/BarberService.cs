@@ -228,7 +228,7 @@ namespace TopSaloon.ServiceLayer
 
                         var barber = barberPrintResult.FirstOrDefault();
 
-                        if (barber !=null)
+                        if (barber !=null && model.Id != BarberToEdit.Id)
                         {
                            result.Succeeded = false;
                             result.Errors.Add("Finger Print Id is used ! ");
